@@ -226,31 +226,6 @@ export function SimulationView({
               )}
             </div>
 
-            {/* Cost Summary on the Printed Page */}
-            <div className="mt-4">
-              <h3 className="text-sm font-black uppercase text-center border-b border-black mb-2 pb-1">Desglose de Costos</h3>
-              <table className="w-full text-[10px] font-medium border-collapse">
-                <tbody>
-                  {ingredientesCosteo.map((ing, i) => (
-                    <tr key={i} className="border-b border-gray-200">
-                      <td className="py-1 italic">{ing.nombre}</td>
-                      <td className="py-1 text-right">{ing.peso}{ing.unidad === 'unidad' ? 'ud' : 'g'}</td>
-                      <td className="py-1 text-right font-bold tracking-tight">
-                        ${(ing.unidad === 'kg' || ing.unidad === 'litro' ? (ing.peso * ing.costo_unitario) / 1000 : (ing.peso * ing.costo_unitario)).toLocaleString('es-CL')}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="border-t-2 border-black font-black uppercase">
-                    <td colSpan={2} className="py-2 text-sm text-right pr-4">Costo Total Receta:</td>
-                    <td className="py-2 text-sm text-right">${costoTotal.toLocaleString('es-CL')}</td>
-                  </tr>
-                  <tr className="font-bold uppercase text-gray-700">
-                    <td colSpan={2} className="py-1 text-[11px] text-right pr-4">Costo por Porción:</td>
-                    <td className="py-1 text-[11px] text-right">${costoPorPorcion.toLocaleString('es-CL')}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
 
             <div className="mt-8 pt-4 border-t border-dotted border-black text-center text-[8px] font-bold opacity-50 italic">
               Reporte generado por NUTRIETIQ - Sistema de Gestión Alimentaria

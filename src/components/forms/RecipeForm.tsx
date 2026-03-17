@@ -110,6 +110,8 @@ export function RecipeForm({
         usuario_creador: userData.user.id
       }
 
+      console.log("Saving recipe with payload:", recipePayload)
+
       let recipeId = initialData?.id
 
       if (recipeId) {
@@ -119,7 +121,10 @@ export function RecipeForm({
           .update(recipePayload)
           .eq('id', recipeId)
 
-        if (updateError) throw updateError
+        if (updateError) {
+          console.error("Update error:", updateError)
+          throw updateError
+        }
 
         // Delete previous ingredients
         const { error: deleteError } = await supabase
@@ -127,7 +132,10 @@ export function RecipeForm({
           .delete()
           .eq('receta_id', recipeId)
         
-        if (deleteError) throw deleteError
+        if (deleteError) {
+          console.error("Delete ingredients error:", deleteError)
+          throw deleteError
+        }
       } else {
         // Mode: Create
         const { data: recetaData, error: recetaError } = await supabase
@@ -136,7 +144,10 @@ export function RecipeForm({
           .select('id')
           .single()
 
-        if (recetaError) throw recetaError
+        if (recetaError) {
+          console.error("Insert recipe error:", recetaError)
+          throw recetaError
+        }
         recipeId = recetaData.id
       }
 
@@ -152,14 +163,23 @@ export function RecipeForm({
 
       if (mapped.length > 0) {
         const { error: mapError } = await supabase.from('receta_ingredientes').insert(mapped)
-        if (mapError) throw mapError
+        if (mapError) {
+          console.error("Insert ingredients error:", mapError)
+          throw mapError
+        }
       }
 
+      console.log("Recipe saved successfully. Revalidating and redirecting...")
+      
+      // Force revalidation on the server
       await forceRevalidate('/recetas')
+      
+      // Small delay to ensure DB propagation in some cases, though usually not needed
       router.push('/recetas')
       router.refresh()
     } catch (err: any) {
-      setErrorStr(err.message || 'Error occurred while saving.')
+      console.error("Critical error in handleSubmit:", err)
+      setErrorStr(err.message || 'Ocurrió un error al guardar la receta. Verifica que la base de datos esté actualizada.')
       setLoading(false)
     }
   }

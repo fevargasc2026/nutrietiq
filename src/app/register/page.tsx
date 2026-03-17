@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChefHat } from 'lucide-react'
 
+import { headers } from 'next/headers'
+
 export default function RegisterPage() {
   const register = async (formData: FormData) => {
     'use server'
@@ -13,31 +15,29 @@ export default function RegisterPage() {
     const nombre = formData.get('nombre') as string
     const empresa = formData.get('empresa') as string
     const supabase = await createClient()
+    const headersList = await headers()
+    const origin = headersList.get('origin') || headersList.get('referer') || ''
+    const url = new URL(origin)
+    const baseUrl = `${url.protocol}//${url.host}`
 
     // SignUp User
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          nombre,
+          empresa,
+        },
+        emailRedirectTo: `${baseUrl}/auth/callback`,
+      },
     })
 
     if (authError || !authData.user) {
-      redirect('/register?message=Could not complete registration')
+      redirect(`/register?message=${encodeURIComponent(authError?.message || 'Could not complete registration')}`)
     }
 
-    // Insert user info into public.usuarios
-    const { error: dbError } = await supabase
-      .from('usuarios')
-      .insert({
-        id: authData.user.id,
-        nombre,
-        email,
-        empresa,
-        rol: 'Administrador' // Default to Admin for first user or we can handle logic later
-      })
-
-    if (dbError) {
-       redirect('/register?message=Error creating profile')
-    }
+    // Manual insert removed: Handled by database trigger public.handle_new_user()
 
     revalidatePath('/', 'layout')
     redirect('/')

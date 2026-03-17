@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChefHat, LayoutDashboard, Utensils, Beaker, FileText, Settings, LogOut } from 'lucide-react';
+import { ChefHat, LayoutDashboard, Utensils, Beaker, FileText, Settings, LogOut, Users } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -7,9 +7,18 @@ const navItems = [
   { name: 'Recetas', href: '/recetas', icon: Utensils },
   { name: 'Simulador', href: '/simulador', icon: FileText },
   { name: 'Configuración', href: '/configuracion', icon: Settings },
+  { name: 'Usuarios', href: '/usuarios', icon: Users, roles: ['SuperUsuario'] },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  userRole?: string;
+}
+
+export function Sidebar({ userRole }: SidebarProps) {
+  const filteredNavItems = navItems.filter(item => 
+    !item.roles || (userRole && item.roles.includes(userRole))
+  );
+
   return (
     <aside className="w-64 border-r bg-background flex-shrink-0 flex flex-col h-screen sticky top-0">
       <div className="h-16 flex items-center px-6 border-b font-bold text-xl tracking-tight text-primary">
@@ -17,7 +26,7 @@ export function Sidebar() {
         NUTRI-ETIQUETA
       </div>
       <nav className="flex-1 py-4 flex flex-col gap-1 overflow-y-auto px-3">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <Link

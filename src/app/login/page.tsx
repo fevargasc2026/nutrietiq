@@ -4,7 +4,12 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChefHat } from 'lucide-react'
 
-export default function LoginPage() {
+export default async function LoginPage(props: {
+  searchParams: Promise<{ message: string }>
+}) {
+  const searchParams = await props.searchParams
+  const message = searchParams.message
+
   const login = async (formData: FormData) => {
     'use server'
 
@@ -12,26 +17,36 @@ export default function LoginPage() {
     const password = formData.get('password') as string
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      redirect('/login?message=Could not authenticate user')
+      if (error) {
+        redirect(`/login?message=${encodeURIComponent(error.message)}`)
+      }
+
+      revalidatePath('/', 'layout')
+      redirect('/')
+    } catch (e: any) {
+      if (e.message === 'NEXT_REDIRECT') throw e;
+      redirect(`/login?message=${encodeURIComponent(e.message || 'Error inesperado')}`)
     }
-
-    revalidatePath('/', 'layout')
-    redirect('/')
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md bg-card p-8 rounded-xl border shadow-sm flex flex-col items-center">
-        <div className="mb-8 flex flex-col items-center">
+        <div className="mb-8 flex flex-col items-center text-center">
           <ChefHat className="h-10 w-10 text-primary mb-2" />
           <h1 className="text-2xl font-bold tracking-tight">Iniciar Sesión</h1>
           <p className="text-sm text-muted-foreground mt-1">Accede a tu cuenta de NUTRI-ETIQUETA</p>
+          {message && (
+            <div className="mt-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm w-full">
+              {message}
+            </div>
+          )}
         </div>
 
         <form className="w-full space-y-4" action={login}>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ChefHat, LayoutDashboard, Utensils, Beaker, FileText, Settings, LogOut, Users } from 'lucide-react';
+import { signOut } from '@/app/auth/actions';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -41,10 +42,15 @@ export function Sidebar({ userRole }: SidebarProps) {
         })}
       </nav>
       <div className="p-4 border-t">
-        <button className="flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
-          <LogOut className="mr-3 h-4 w-4" />
-          Cerrar Sesión
-        </button>
+        <form action={signOut}>
+          <button 
+            type="submit"
+            className="flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            Cerrar Sesión
+          </button>
+        </form>
       </div>
     </aside>
   );

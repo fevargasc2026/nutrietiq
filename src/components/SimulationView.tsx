@@ -132,7 +132,7 @@ export function SimulationView({
           
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-green-700 uppercase">Costo Insumos:</span>
+              <span className="text-xs font-semibold text-green-700 uppercase">Costo Receta:</span>
               <span className="text-lg font-black text-green-800">${Math.round(costoTotal).toLocaleString('es-CL')}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-green-600 italic">

@@ -371,7 +371,7 @@ export function RecipeForm({
         {/* Professional Valuation Dashboard */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-blue-500">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Insumos</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Receta</p>
             <p className="text-xl font-black text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
           </div>
           <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-amber-500">

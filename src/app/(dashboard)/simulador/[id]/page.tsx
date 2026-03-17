@@ -5,7 +5,8 @@ import { SimulationView } from '@/components/SimulationView'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SimuladorPage({ params }: { params: { id: string } }) {
+export default async function SimuladorPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: receta, error } = await supabase
@@ -25,14 +26,14 @@ export default async function SimuladorPage({ params }: { params: { id: string }
         )
       )
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !receta) {
     return (
       <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-xl space-y-2">
         <h2 className="text-lg font-bold">Receta no encontrada</h2>
-        <p className="text-sm">ID Solicitado: {params.id}</p>
+        <p className="text-sm">ID Solicitado: {id}</p>
         {error && <p className="text-xs font-mono bg-red-100 p-2 rounded">{error.message}</p>}
         <Link href="/recetas" className="inline-flex items-center text-sm font-medium text-red-600 hover:underline">
           <ArrowLeft className="mr-1 h-3 w-3" /> Volver a Recetas

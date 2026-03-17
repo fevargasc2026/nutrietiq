@@ -10,7 +10,17 @@ export default async function NuevaRecetaPage() {
   const supabase = await createClient()
 
   // Need ingredients list to populate select
-  const { data: ingredientes } = await supabase.from('ingredientes').select('id, nombre, energia_kcal, costo_unitario, unidad_medida_costo').order('nombre')
+  const { data: ingredientes, error } = await supabase.from('ingredientes').select('id, nombre, energia_kcal, costo_unitario, unidad_medida_costo').order('nombre')
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-100 border border-red-200 text-red-700 rounded-md max-w-lg">
+        <h2 className="text-lg font-bold">Error al cargar formulario</h2>
+        <p className="text-sm">{error.message}</p>
+        <p className="text-xs mt-2 italic text-red-600">Por favor, verifica que las migraciones de base de datos hayan sido aplicadas.</p>
+      </div>
+    )
+  }
 
   // Due to server actions limitations with complex dynamic lists, 
   // typical SPAs use Client Components for this form. 

@@ -4,7 +4,15 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 
-export default function NuevoIngredientePage() {
+import { use } from 'react'
+
+export default function NuevoIngredientePage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ error?: string }> 
+}) {
+  const { error: errorMsg } = use(searchParams)
+
   const createIngrediente = async (formData: FormData) => {
     'use server'
 
@@ -68,6 +76,11 @@ export default function NuevoIngredientePage() {
 
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
         <form action={createIngrediente} className="p-6 space-y-8">
+          {errorMsg && (
+            <div className="p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm font-medium">
+              {errorMsg}
+            </div>
+          )}
           
           <div className="space-y-4">
             <h3 className="text-lg font-medium tracking-tight">Información General</h3>

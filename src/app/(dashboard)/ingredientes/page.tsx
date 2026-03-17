@@ -7,10 +7,20 @@ export const dynamic = 'force-dynamic'
 export default async function IngredientesPage() {
   const supabase = await createClient()
 
-  const { data: ingredientes } = await supabase
+  const { data: ingredientes, error } = await supabase
     .from('ingredientes')
     .select('*')
     .order('nombre')
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-100 border border-red-200 text-red-700 rounded-md">
+        <h2 className="text-lg font-bold">Error al cargar ingredientes</h2>
+        <p className="text-sm">{error.message}</p>
+        <p className="text-xs mt-2 italic text-red-600">Es posible que la base de datos no tenga las últimas actualizaciones de esquema.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

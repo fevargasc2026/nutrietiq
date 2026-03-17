@@ -41,7 +41,7 @@ export function Sidebar({ userRole }: SidebarProps) {
           );
         })}
       </nav>
-      <div className="p-4 border-t">
+      <div className="p-4 border-t flex flex-col gap-4">
         <form action={signOut}>
           <button 
             type="submit"
@@ -51,6 +51,9 @@ export function Sidebar({ userRole }: SidebarProps) {
             Cerrar Sesión
           </button>
         </form>
+        <div className="px-3 text-[10px] text-muted-foreground/50 font-medium">
+          Desarrollado por FVC-2026
+        </div>
       </div>
     </aside>
   );

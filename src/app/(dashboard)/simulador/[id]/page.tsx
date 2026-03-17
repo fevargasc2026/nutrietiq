@@ -16,6 +16,8 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
       nombre, 
       porciones, 
       peso_final,
+      costo_indirecto_pct,
+      markup_factor,
       receta_ingredientes (
         peso_gramos,
         ingredientes (
@@ -67,6 +69,8 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
         recetaNombre={receta.nombre} 
         porciones={receta.porciones} 
         pesoFinal={receta.peso_final} 
+        costoIndirectoPct={receta.costo_indirecto_pct}
+        markupFactor={receta.markup_factor}
         ingredientesCosteo={ingredientesCosteo}
       />
     </div>

@@ -32,6 +32,8 @@ export function RecipeForm({
   const [categoria, setCategoria] = useState(initialData?.categoria || "")
   const [pesoFinal, setPesoFinal] = useState(initialData?.peso_final?.toString() || "100")
   const [porciones, setPorciones] = useState(initialData?.porciones?.toString() || "1")
+  const [costoIndirectoPct, setCostoIndirectoPct] = useState(initialData?.costo_indirecto_pct?.toString() || "5")
+  const [markupFactor, setMarkupFactor] = useState(initialData?.markup_factor?.toString() || "3.0")
   
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>(
     recetaIngredientes.length > 0 
@@ -76,7 +78,16 @@ export function RecipeForm({
     return acc + calculateIngredientCost(curr.id, curr.peso)
   }, 0)
 
+  const indPct = parseFloat(costoIndirectoPct) || 0
+  const factor = parseFloat(markupFactor) || 1
+  
+  const costoIndirecto = (costoTotalReceta * indPct) / 100
+  const costoTotalReal = costoTotalReceta + costoIndirecto
+  const precioSugerido = costoTotalReal * factor
+  const margenContribucion = precioSugerido - costoTotalReceta
+
   const costoPorPorcion = costoTotalReceta / porcionesNum
+  const precioPorPorcion = precioSugerido / porcionesNum
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,6 +105,8 @@ export function RecipeForm({
         peso_final: pesoFinalNum,
         factor_rendimiento: isNaN(rendimiento) ? 1.0 : parseFloat(rendimiento.toFixed(4)),
         porciones: porcionesNum,
+        costo_indirecto_pct: parseFloat(costoIndirectoPct) || 0,
+        markup_factor: parseFloat(markupFactor) || 1,
         usuario_creador: userData.user.id
       }
 
@@ -211,6 +224,59 @@ export function RecipeForm({
             <input required value={porciones} onChange={e => setPorciones(e.target.value)} type="number" min="1" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
         </div>
+
+        {/* Professional Cost Factors */}
+        <div className="grid gap-4 md:grid-cols-2 pt-2 border-t border-dashed">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <label className="text-sm font-medium flex items-center gap-1">
+                % Costo Indirecto (Oculto)
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Condimentos, aceite de latas, merma técnica">?</span>
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                type="number" 
+                step="0.5" 
+                min="0"
+                value={costoIndirectoPct} 
+                onChange={e => setCostoIndirectoPct(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+              />
+              <span className="text-sm font-bold text-muted-foreground">%</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+             <div className="flex justify-between">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Factor Mark-up
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Multiplicador para cubrir labor, gastos fijos y utilidad">?</span>
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-muted-foreground">x</span>
+              <input 
+                type="number" 
+                step="0.1" 
+                min="1"
+                value={markupFactor} 
+                onChange={e => setMarkupFactor(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Yield Test Warning */}
+        {rendimiento < 0.8 && pesoBrutoNum > 0 && (
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg flex items-center gap-2 text-amber-800 text-xs">
+            <div className="p-1 bg-amber-200 rounded-full">!</div>
+            <p>
+              <strong>Alerta de Rendimiento:</strong> Esta receta tiene una merma del {((1 - rendimiento) * 100).toFixed(0)}%. 
+              El costo real por porción es mayor al estimado teóricamente.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm p-6 space-y-4">
@@ -281,15 +347,37 @@ export function RecipeForm({
       </div>
 
       {/* Summary Footer bar pinned or at bottom */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 rounded-xl border bg-green-50/50 p-6 flex justify-between items-center shadow-sm">
-          <div>
-            <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Costo Total Receta</p>
-            <p className="text-3xl font-black text-green-700">${costoTotalReceta.toLocaleString('es-CL')}</p>
+      <div className="flex flex-col gap-4">
+        {/* Professional Valuation Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-blue-500">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Insumos</p>
+            <p className="text-xl font-black text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Costo por Porción</p>
-            <p className="text-xl font-bold text-green-700">${costoPorPorcion.toLocaleString('es-CL')}</p>
+          <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-amber-500">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Real (+{costoIndirectoPct}%)</p>
+            <p className="text-xl font-black text-foreground">${Math.round(costoTotalReal).toLocaleString('es-CL')}</p>
+          </div>
+          <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-green-600">
+            <p className="text-[10px] font-bold text-green-700 uppercase">Precio Sugerido</p>
+            <p className="text-xl font-black text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
+          </div>
+          <div className="rounded-xl border bg-background p-4 shadow-sm border-l-4 border-l-emerald-500">
+            <p className="text-[10px] font-bold text-emerald-600 uppercase">Margen Contrib.</p>
+            <p className="text-xl font-black text-emerald-600">${Math.round(margenContribucion).toLocaleString('es-CL')}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 rounded-xl border bg-green-50/50 p-6 flex justify-between items-center shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Precio Sugerido Venta</p>
+              <p className="text-3xl font-black text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">P.V.P x Porción</p>
+              <p className="text-xl font-bold text-foreground">${Math.round(precioPorPorcion).toLocaleString('es-CL')}</p>
+            </div>
           </div>
         </div>
 

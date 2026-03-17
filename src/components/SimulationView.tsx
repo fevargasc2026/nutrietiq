@@ -29,12 +29,16 @@ export function SimulationView({
   recetaNombre, 
   porciones, 
   pesoFinal,
+  costoIndirectoPct = 5,
+  markupFactor = 3.0,
   ingredientesCosteo = []
 }: { 
   recetaId: string, 
   recetaNombre: string, 
   porciones: number, 
   pesoFinal: number,
+  costoIndirectoPct?: number,
+  markupFactor?: number,
   ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[]
 }) {
   const [loading, setLoading] = useState(false)
@@ -94,7 +98,13 @@ export function SimulationView({
     return acc + (ing.peso * ing.costo_unitario)
   }, 0)
 
+  const costoIndirecto = (costoTotal * costoIndirectoPct) / 100
+  const costoTotalReal = costoTotal + costoIndirecto
+  const precioSugerido = costoTotalReal * markupFactor
+  const margenContribucion = precioSugerido - costoTotal
+  
   const costoPorPorcion = costoTotal / porciones
+  const precioPorPorcion = precioSugerido / porciones
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -116,17 +126,36 @@ export function SimulationView({
           {errorStr && <p className="text-sm text-red-600 font-medium">{errorStr}</p>}
         </div>
 
-        {/* Cost Summary Card */}
-        <div className="rounded-xl border bg-green-50 border-green-100 p-6 shadow-sm space-y-4">
-          <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Resumen Económico</h3>
+        {/* Professional Cost Summary Card */}
+        <div className="rounded-xl border bg-green-50 border-green-100 p-6 shadow-sm space-y-3">
+          <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Gestión de Food Cost</h3>
+          
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Costo Total Receta:</span>
-              <span className="text-xl font-black text-green-800">${costoTotal.toLocaleString('es-CL')}</span>
+              <span className="text-xs font-semibold text-green-700 uppercase">Costo Insumos:</span>
+              <span className="text-lg font-black text-green-800">${Math.round(costoTotal).toLocaleString('es-CL')}</span>
             </div>
-            <div className="flex justify-between items-center tracking-tight">
-              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Costo por Porción:</span>
-              <span className="text-lg font-bold text-green-800">${costoPorPorcion.toLocaleString('es-CL')}</span>
+            <div className="flex justify-between items-center text-xs text-green-600 italic">
+              <span>+ {costoIndirectoPct}% Costos Ocultos:</span>
+              <span>$ {Math.round(costoIndirecto).toLocaleString('es-CL')}</span>
+            </div>
+            <div className="border-t border-green-200 pt-2 flex justify-between items-center">
+              <span className="text-xs font-bold text-green-700 uppercase">COSTO REAL:</span>
+              <span className="text-lg font-black text-green-900">${Math.round(costoTotalReal).toLocaleString('es-CL')}</span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-green-200 space-y-2">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-emerald-700 uppercase">PRECIO SUGERIDO</span>
+                <span className="text-[10px] text-emerald-600">Mark-up: x{markupFactor}</span>
+              </div>
+              <span className="text-2xl font-black text-emerald-800">${Math.round(precioSugerido).toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-between items-center bg-emerald-100/50 p-2 rounded">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase">Margen Contribución:</span>
+              <span className="text-sm font-bold text-emerald-800">${Math.round(margenContribucion).toLocaleString('es-CL')}</span>
             </div>
           </div>
         </div>

@@ -16,9 +16,9 @@ export default function RegisterPage() {
     const empresa = formData.get('empresa') as string
     const supabase = await createClient()
     const headersList = await headers()
-    const origin = headersList.get('origin') || headersList.get('referer') || ''
-    const url = new URL(origin)
-    const baseUrl = `${url.protocol}//${url.host}`
+    const host = headersList.get('host') || 'localhost:3000'
+    const protocol = headersList.get('x-forwarded-proto') || 'http'
+    const baseUrl = `${protocol}://${host}`
 
     // SignUp User
     const { data: authData, error: authError } = await supabase.auth.signUp({

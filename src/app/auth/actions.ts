@@ -15,5 +15,6 @@ export async function signOut() {
   }
   
   revalidatePath('/', 'layout');
-  redirect('/login');
+  const message = encodeURIComponent('¡Gracias por usar NUTRI-ETIQUETA! Tu sesión ha sido cerrada correctamente.');
+  redirect(`/login?message=${message}&type=success`);
 }

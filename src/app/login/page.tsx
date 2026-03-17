@@ -38,7 +38,7 @@ export default async function LoginPage(props: {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+    <div className="flex flex-col min-h-screen w-full items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md bg-card p-8 rounded-xl border shadow-sm flex flex-col items-center text-center">
         <div className="mb-8 flex flex-col items-center">
           <ChefHat className="h-12 w-12 text-primary mb-3" />

@@ -30,14 +30,14 @@ export default async function DashboardLayout({
       <Sidebar userRole={profile?.rol} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar userRole={profile?.rol} userName={profile?.nombre} />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
           {children}
-          <div className="mt-8 flex justify-end">
-            <span className="text-[10px] text-muted-foreground/40 font-medium">
-              Desarrollado por FVC-2026
-            </span>
-          </div>
         </main>
+      </div>
+      <div className="fixed bottom-4 right-6 pointer-events-none z-50">
+        <span className="text-[10px] text-muted-foreground/30 font-medium">
+          Desarrollado por FVC-2026
+        </span>
       </div>
     </div>
   );

@@ -14,10 +14,15 @@ export default async function NuevaRecetaPage() {
 
   if (error) {
     return (
-      <div className="p-4 bg-red-100 border border-red-200 text-red-700 rounded-md max-w-lg">
-        <h2 className="text-lg font-bold">Error al cargar formulario</h2>
-        <p className="text-sm">{error.message}</p>
-        <p className="text-xs mt-2 italic text-red-600">Por favor, verifica que las migraciones de base de datos hayan sido aplicadas.</p>
+      <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-xl space-y-2 max-w-lg">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Plus className="h-5 w-5 text-red-500" />
+          Error al cargar información
+        </h2>
+        <p className="text-sm opacity-90">{error.message}</p>
+        <p className="text-xs font-medium text-red-600 bg-red-100/50 p-2 rounded border border-red-200">
+          Nota técnica: Asegúrese de que las migraciones de base de datos estén sincronizadas.
+        </p>
       </div>
     )
   }

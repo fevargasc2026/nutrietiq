@@ -24,7 +24,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     <aside className="w-64 border-r bg-background flex-shrink-0 flex flex-col h-screen sticky top-0">
       <div className="h-16 flex items-center px-6 border-b font-bold text-xl tracking-tight text-primary">
         <ChefHat className="mr-2 h-6 w-6" />
-        NUTRI-ETIQUETA
+        NUTRIETIQ
       </div>
       <nav className="flex-1 py-4 flex flex-col gap-1 overflow-y-auto px-3">
         {filteredNavItems.map((item) => {

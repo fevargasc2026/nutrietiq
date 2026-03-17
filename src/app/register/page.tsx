@@ -55,7 +55,7 @@ export default function RegisterPage() {
         <div className="mb-6 flex flex-col items-center">
           <ChefHat className="h-10 w-10 text-primary mb-2" />
           <h1 className="text-xl font-bold tracking-tight">Crear Cuenta</h1>
-          <p className="text-sm text-muted-foreground mt-1">Registra tu empresa en NUTRI-ETIQUETA</p>
+          <p className="text-sm text-muted-foreground mt-1">Registra tu empresa en NUTRIETIQ</p>
         </div>
 
         {error && (

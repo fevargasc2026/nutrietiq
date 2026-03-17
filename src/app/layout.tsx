@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NUTRI-ETIQUETA",
+  title: "NUTRIETIQ",
   description: "Plataforma de cálculo nutricional y generación de etiquetas",
 };
 

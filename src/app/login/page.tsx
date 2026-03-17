@@ -42,7 +42,7 @@ export default async function LoginPage(props: {
       <div className="w-full max-w-md bg-card p-8 rounded-xl border shadow-sm flex flex-col items-center text-center">
         <div className="mb-8 flex flex-col items-center">
           <ChefHat className="h-12 w-12 text-primary mb-3" />
-          <h1 className="text-3xl font-bold tracking-tight">NUTRI-ETIQUETA</h1>
+          <h1 className="text-3xl font-bold tracking-tight">NUTRIETIQ</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión para gestionar tu información nutricional</p>
           
           {message && (

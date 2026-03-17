@@ -9,7 +9,7 @@ export default function Loading() {
           <div className="absolute inset-0 h-16 w-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-tight">Iniciando NUTRI-ETIQUETA</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Iniciando NUTRIETIQ</h2>
           <p className="text-sm text-muted-foreground animate-pulse">
             Preparando tu panel de control...
           </p>

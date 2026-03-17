@@ -76,7 +76,11 @@ export default async function RecetasPage() {
                       <td className="p-4 align-middle">{new Date(receta.fecha_creacion).toLocaleDateString()}</td>
                       <td className="p-4 align-middle">
                          <div className="flex items-center justify-center gap-2">
-                           <Link href={`/simulador/${receta.id}`} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-blue-600">
+                           <Link 
+                             href={`/simulador/${receta.id}`} 
+                             title="Ver etiqueta nutricional"
+                             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-blue-600"
+                           >
                              <Eye className="h-4 w-4" />
                            </Link>
                            <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">

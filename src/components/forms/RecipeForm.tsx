@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Save, Plus, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { forceRevalidate } from '@/app/actions'
 
 type IngredienteOpcion = { 
   id: string; 
@@ -141,6 +142,7 @@ export function RecipeForm({
         if (mapError) throw mapError
       }
 
+      await forceRevalidate('/recetas')
       router.push('/recetas')
       router.refresh()
     } catch (err: any) {

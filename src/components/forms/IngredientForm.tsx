@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Save, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { forceRevalidate } from '@/app/actions'
 
 export function IngredientForm({ 
   initialData 
@@ -64,6 +65,7 @@ export function IngredientForm({
         if (error) throw error
       }
 
+      await forceRevalidate('/ingredientes')
       router.push('/ingredientes')
       router.refresh()
     } catch (err: any) {

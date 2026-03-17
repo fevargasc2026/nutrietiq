@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteIngredientButton } from '@/components/DeleteIngredientButton'
+import { RefreshButton } from '@/components/RefreshButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,12 +46,15 @@ export default async function IngredientesPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Ingredientes</h1>
           <p className="text-muted-foreground">Gestiona la base de datos de ingredientes y su información nutricional por 100g.</p>
         </div>
-        <Link 
-          href="/ingredientes/nuevo"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Ingrediente
-        </Link>
+        <div className="flex items-center gap-2">
+          <RefreshButton path="/ingredientes" />
+          <Link 
+            href="/ingredientes/nuevo"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Nuevo Ingrediente
+          </Link>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm">

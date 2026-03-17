@@ -163,7 +163,29 @@ export function RecipeForm({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Categoría</label>
-            <input value={categoria} onChange={e => setCategoria(e.target.value)} type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Ej. Repostería" />
+            <select 
+              required
+              value={categoria} 
+              onChange={e => setCategoria(e.target.value)} 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+            >
+              <option value="" disabled>Seleccione una categoría...</option>
+              <option value="Acompañamientos / Guarniciones">Acompañamientos / Guarniciones</option>
+              <option value="Aves">Aves</option>
+              <option value="Bebidas y Jugos">Bebidas y Jugos</option>
+              <option value="Carnes Rojas">Carnes Rojas</option>
+              <option value="Ensaladas">Ensaladas</option>
+              <option value="Entradas y Picoteos">Entradas y Picoteos</option>
+              <option value="Legumbres y Guisos">Legumbres y Guisos</option>
+              <option value="Panadería">Panadería</option>
+              <option value="Pastas y Arroces">Pastas y Arroces</option>
+              <option value="Pastelería y Repostería">Pastelería y Repostería</option>
+              <option value="Pescados y Mariscos">Pescados y Mariscos</option>
+              <option value="Postres">Postres</option>
+              <option value="Salsas y Aderezos">Salsas y Aderezos</option>
+              <option value="Sopas y Cremas">Sopas y Cremas</option>
+              <option value="Vegetariano / Vegano">Vegetariano / Vegano</option>
+            </select>
           </div>
         </div>
 

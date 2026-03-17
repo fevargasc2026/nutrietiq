@@ -1,11 +1,28 @@
+import { createClient } from '@/utils/supabase/server';
 import { Users, FileText, Beaker, Calculator } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const supabase = await createClient();
+
+  // Fetch real counts
+  const [
+    { count: recetasCount },
+    { count: ingredientesCount },
+    { count: usuariosCount }
+  ] = await Promise.all([
+    supabase.from('recetas').select('*', { count: 'exact', head: true }),
+    supabase.from('ingredientes').select('*', { count: 'exact', head: true }),
+    supabase.from('usuarios').select('*', { count: 'exact', head: true }),
+  ]);
+
   const stats = [
-    { name: "Recetas Creadas", value: "12", icon: FileText, change: "+2 este mes" },
-    { name: "Ingredientes Base", value: "349", icon: Beaker, change: "Actualizados hoy" },
-    { name: "Cálculos Nutricionales", value: "45", icon: Calculator, change: "+5 esta semana" },
-    { name: "Usuarios Activos", value: "3", icon: Users, change: "En tu empresa" },
+    { name: "Recetas Creadas", value: (recetasCount || 0).toString(), icon: FileText, change: "En el sistema" },
+    { name: "Ingredientes Base", value: (ingredientesCount || 0).toString(), icon: Beaker, change: "Disponibles" },
+    { name: "Cálculos Nutricionales", value: "0", icon: Calculator, change: "Simulaciones" },
+    { name: "Usuarios Activos", value: (usuariosCount || 0).toString(), icon: Users, change: "En la plataforma" },
   ];
 
   return (
@@ -50,15 +67,24 @@ export default function Home() {
             <p className="text-sm text-muted-foreground mt-2">Acciones comunes del sistema.</p>
           </div>
           <div className="mt-8 flex flex-col gap-3">
-            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full">
+            <Link 
+              href="/recetas/nueva"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full"
+            >
               Crear Nueva Receta
-            </button>
-            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full">
+            </Link>
+            <Link 
+              href="/ingredientes/nuevo"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full"
+            >
               Añadir Ingrediente
-            </button>
-            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full">
+            </Link>
+            <Link 
+              href="/recetas"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full"
+            >
               Simular Etiqueta
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -14,7 +14,14 @@ export default async function IngredientesPage() {
     .order('nombre')
 
   const { data: { user } } = await supabase.auth.getUser()
-  const isSuperUsuario = user?.user_metadata?.role === 'SuperUsuario'
+  
+  const { data: profile } = await supabase
+    .from('usuarios')
+    .select('rol')
+    .eq('id', user?.id)
+    .single()
+
+  const isSuperUsuario = profile?.rol === 'SuperUsuario'
 
   if (error) {
     return (

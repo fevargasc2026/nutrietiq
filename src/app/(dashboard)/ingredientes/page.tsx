@@ -1,6 +1,6 @@
-import { createClient } from '@/utils/supabase/server'
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import { DeleteIngredientButton } from '@/components/DeleteIngredientButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,11 +12,14 @@ export default async function IngredientesPage() {
     .select('*')
     .order('nombre')
 
+  const { data: { user } } = await supabase.auth.getUser()
+  const isSuperUsuario = user?.user_metadata?.role === 'SuperUsuario'
+
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-xl space-y-2">
         <h2 className="text-lg font-bold flex items-center gap-2">
-          <Edit2 className="h-5 w-5 text-red-500" />
+          <AlertTriangle className="h-5 w-5 text-red-500" />
           Error al cargar ingredientes
         </h2>
         <p className="text-sm opacity-90">{error.message}</p>
@@ -84,17 +87,21 @@ export default async function IngredientesPage() {
                       <td className="p-4 align-middle">{ing.carbohidratos_g}</td>
                       <td className="p-4 align-middle">{ing.azucares_g}</td>
                       <td className="p-4 align-middle">{ing.sodio_mg}</td>
-                      <td className="p-4 align-middle font-medium text-green-600">
+                      <td className="p-4 align-middle font-medium text-green-600 shrink-0 whitespace-nowrap">
                         ${ing.costo_unitario?.toLocaleString('es-CL')} / {ing.unidad_medida_costo}
                       </td>
                       <td className="p-4 align-middle">
                          <div className="flex items-center justify-center gap-2">
-                           <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">
-                             <Edit2 className="h-4 w-4" />
-                           </button>
-                           <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200">
-                             <Trash2 className="h-4 w-4" />
-                           </button>
+                            <Link 
+                              href={`/ingredientes/${ing.id}/editar`} 
+                              title="Editar ingrediente"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Link>
+                            {isSuperUsuario && (
+                              <DeleteIngredientButton id={ing.id} ingredientName={ing.nombre} />
+                            )}
                          </div>
                       </td>
                     </tr>
@@ -102,6 +109,7 @@ export default async function IngredientesPage() {
                 )}
               </tbody>
             </table>
+table>
           </div>
         </div>
       </div>

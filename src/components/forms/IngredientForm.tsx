@@ -45,7 +45,7 @@ export function IngredientForm({
       sodio_mg: parseFloat(sodio_mg),
       added_sugars,
       added_saturated_fats,
-      alergenos: alergenos ? alergenos.split(',').map(a => a.trim()) : [],
+      alergenos: alergenos ? alergenos.split(',').map((a: string) => a.trim()) : [],
       costo_unitario: parseFloat(costo_unitario),
       unidad_medida_costo
     }

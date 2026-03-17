@@ -1,3 +1,4 @@
+import { createClient } from '@/utils/supabase/server'
 import { Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteIngredientButton } from '@/components/DeleteIngredientButton'
@@ -109,7 +110,6 @@ export default async function IngredientesPage() {
                 )}
               </tbody>
             </table>
-table>
           </div>
         </div>
       </div>

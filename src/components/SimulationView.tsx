@@ -50,12 +50,11 @@ export function SimulationView({
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error("No session found")
 
-      // Call Edge Function
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/calculate-nutrition`, {
+      // Call Local API instead of Edge Function
+      const res = await fetch('/api/calculate-nutrition', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ receta_id: recetaId })
       })

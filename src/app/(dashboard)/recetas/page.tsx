@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { DeleteRecipeButton } from '@/components/DeleteRecipeButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,12 +84,14 @@ export default async function RecetasPage() {
                            >
                              <Eye className="h-4 w-4" />
                            </Link>
-                           <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">
-                             <Edit2 className="h-4 w-4" />
-                           </button>
-                           <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200">
-                             <Trash2 className="h-4 w-4" />
-                           </button>
+                            <Link 
+                              href={`/recetas/${receta.id}/editar`} 
+                              title="Editar receta"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Link>
+                            <DeleteRecipeButton id={receta.id} recipeName={receta.nombre} />
                          </div>
                       </td>
                     </tr>

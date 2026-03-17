@@ -13,18 +13,30 @@ type IngredienteOpcion = {
   unidad_medida_costo: string;
 }
 
-export function RecipeForm({ ingredientesLista }: { ingredientesLista: IngredienteOpcion[] }) {
+export function RecipeForm({ 
+  ingredientesLista, 
+  initialData, 
+  recetaIngredientes = [] 
+}: { 
+  ingredientesLista: IngredienteOpcion[],
+  initialData?: any,
+  recetaIngredientes?: { id: string, peso_gramos: number }[]
+}) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [errorStr, setErrorStr] = useState("")
 
-  const [nombre, setNombre] = useState("")
-  const [categoria, setCategoria] = useState("")
-  const [pesoFinal, setPesoFinal] = useState("100")
-  const [porciones, setPorciones] = useState("1")
+  const [nombre, setNombre] = useState(initialData?.nombre || "")
+  const [categoria, setCategoria] = useState(initialData?.categoria || "")
+  const [pesoFinal, setPesoFinal] = useState(initialData?.peso_final?.toString() || "100")
+  const [porciones, setPorciones] = useState(initialData?.porciones?.toString() || "1")
   
-  const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>([])
+  const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>(
+    recetaIngredientes.length > 0 
+      ? recetaIngredientes.map(ri => ({ id: ri.id, peso: ri.peso_gramos.toString() }))
+      : []
+  )
 
   const addIngredient = () => {
     setIngredientesSeleccionados([...ingredientesSeleccionados, { id: "", peso: "0" }])
@@ -72,10 +84,9 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
 
     try {
       const { data: userData } = await supabase.auth.getUser()
-      if (!userData.user) throw new Error("No authentitcated user")
+      if (!userData.user) throw new Error("No authenticated user")
 
-      // 1. Insert Recipe
-      const { data: recetaData, error: recetaError } = await supabase.from('recetas').insert({
+      const recipePayload = {
         nombre,
         categoria,
         peso_bruto: pesoBrutoNum,
@@ -83,15 +94,43 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
         factor_rendimiento: isNaN(rendimiento) ? 1.0 : parseFloat(rendimiento.toFixed(4)),
         porciones: porcionesNum,
         usuario_creador: userData.user.id
-      }).select('id').single()
+      }
 
-      if (recetaError) throw recetaError;
+      let recipeId = initialData?.id
+
+      if (recipeId) {
+        // Mode: Edit
+        const { error: updateError } = await supabase
+          .from('recetas')
+          .update(recipePayload)
+          .eq('id', recipeId)
+
+        if (updateError) throw updateError
+
+        // Delete previous ingredients
+        const { error: deleteError } = await supabase
+          .from('receta_ingredientes')
+          .delete()
+          .eq('receta_id', recipeId)
+        
+        if (deleteError) throw deleteError
+      } else {
+        // Mode: Create
+        const { data: recetaData, error: recetaError } = await supabase
+          .from('recetas')
+          .insert(recipePayload)
+          .select('id')
+          .single()
+
+        if (recetaError) throw recetaError
+        recipeId = recetaData.id
+      }
 
       // 2. Insert mapped ingredients
       const mapped = ingredientesSeleccionados
         .filter(item => item.id && item.peso && parseFloat(item.peso) > 0)
         .map((item, index) => ({
-          receta_id: recetaData.id,
+          receta_id: recipeId,
           ingrediente_id: item.id,
           peso_gramos: parseFloat(item.peso),
           orden: index

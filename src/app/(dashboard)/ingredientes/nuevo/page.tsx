@@ -19,6 +19,9 @@ export default function NuevoIngredientePage() {
     const azucares_g = parseFloat(formData.get('azucares_g') as string || '0')
     const sodio_mg = parseFloat(formData.get('sodio_mg') as string || '0')
     
+    const costo_unitario = parseFloat(formData.get('costo_unitario') as string || '0')
+    const unidad_medida_costo = formData.get('unidad_medida_costo') as string
+
     // Flags ALTO EN
     const added_sugars = formData.get('added_sugars') === 'on'
     const added_saturated_fats = formData.get('added_saturated_fats') === 'on'
@@ -37,7 +40,9 @@ export default function NuevoIngredientePage() {
       sodio_mg,
       added_sugars,
       added_saturated_fats,
-      alergenos
+      alergenos,
+      costo_unitario,
+      unidad_medida_costo
     })
 
     if (error) {
@@ -108,6 +113,24 @@ export default function NuevoIngredientePage() {
               <div className="space-y-2">
                 <label htmlFor="sodio_mg" className="text-sm font-medium leading-none">Sodio (mg)</label>
                 <input id="sodio_mg" name="sodio_mg" type="number" step="0.1" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium tracking-tight">Valorización de Costo</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="costo_unitario" className="text-sm font-medium leading-none">Costo Unitario ($)</label>
+                <input id="costo_unitario" name="costo_unitario" type="number" step="0.01" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej. 1500" />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="unidad_medida_costo" className="text-sm font-medium leading-none">Unidad de Medida del Costo</label>
+                <select id="unidad_medida_costo" name="unidad_medida_costo" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="kg">Por Kilogramo (kg)</option>
+                  <option value="litro">Por Litro (L)</option>
+                  <option value="unidad">Por Unidad</option>
+                </select>
               </div>
             </div>
           </div>

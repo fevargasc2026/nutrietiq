@@ -24,7 +24,19 @@ type Calculo = {
   sello_grasa: boolean;
 }
 
-export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }: { recetaId: string, recetaNombre: string, porciones: number, pesoFinal: number }) {
+export function SimulationView({ 
+  recetaId, 
+  recetaNombre, 
+  porciones, 
+  pesoFinal,
+  ingredientesCosteo = []
+}: { 
+  recetaId: string, 
+  recetaNombre: string, 
+  porciones: number, 
+  pesoFinal: number,
+  ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[]
+}) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<Calculo | null>(null)
   const [alergenos, setAlergenos] = useState<string[]>([])
@@ -65,7 +77,7 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
     if (!element) return
     const opt = {
       margin: 10,
-      filename: `Etiqueta_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
+      filename: `Reporte_Nutrietiq_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -74,6 +86,16 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
   }
 
   const porcionGramos = (pesoFinal / porciones).toFixed(0)
+
+  // Cost calculation
+  const costoTotal = ingredientesCosteo.reduce((acc, ing) => {
+    if (ing.unidad === 'kg' || ing.unidad === 'litro') {
+      return acc + (ing.peso * ing.costo_unitario) / 1000
+    }
+    return acc + (ing.peso * ing.costo_unitario)
+  }, 0)
+
+  const costoPorPorcion = costoTotal / porciones
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -95,6 +117,21 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
           {errorStr && <p className="text-sm text-red-600 font-medium">{errorStr}</p>}
         </div>
 
+        {/* Cost Summary Card */}
+        <div className="rounded-xl border bg-green-50 border-green-100 p-6 shadow-sm space-y-4">
+          <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Resumen Económico</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Costo Total Receta:</span>
+              <span className="text-xl font-black text-green-800">${costoTotal.toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-between items-center tracking-tight">
+              <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Costo por Porción:</span>
+              <span className="text-lg font-bold text-green-800">${costoPorPorcion.toLocaleString('es-CL')}</span>
+            </div>
+          </div>
+        </div>
+
         {data && (
           <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
             <h3 className="text-lg font-medium tracking-tight border-b pb-2">Acciones</h3>
@@ -102,7 +139,7 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
               onClick={handleExportPDF}
               className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
             >
-              <Download className="mr-2 h-4 w-4" /> Exportar a PDF
+              <Download className="mr-2 h-4 w-4" /> Exportar Reporte PDF
             </button>
           </div>
         )}
@@ -110,10 +147,15 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
 
       {/* Render Area */}
       {data ? (
-        <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex justify-center">
+        <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center">
           
-          <div id="etiqueta-print-area" className="w-full max-w-[400px] bg-white text-black p-4 border-2 border-black font-sans">
+          <div id="etiqueta-print-area" className="w-full max-w-[450px] bg-white text-black p-6 border-2 border-black font-sans">
             
+            <div className="text-center mb-4 border-b-2 border-black pb-2">
+              <h1 className="text-xl font-black uppercase">Reporte Técnico Nutrietiq</h1>
+              <p className="text-sm font-bold uppercase">{recetaNombre}</p>
+            </div>
+
             {/* Sellos de Advertencia */}
             <div className="flex justify-center flex-wrap gap-2 mb-6">
               {data.sello_calorias && <SelloWarning label="CALORÍAS" />}
@@ -160,11 +202,6 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
                   <td className="py-1 text-right font-bold">{data.grasa_porcion}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 pl-4 text-xs">Aportada por: G. Saturada (g)</td>
-                  <td className="py-1 text-right text-xs">{data.sello_grasa ? data.sello_grasa : 0 /* The formula doesn't store sat fat directly in calculation payload yet, placeholder */}</td>
-                  <td className="py-1 text-right text-xs">-</td>
-                </tr>
-                <tr>
                   <td className="py-1 font-bold">Hidratos de Carbono disp. (g)</td>
                   <td className="py-1 text-right font-bold">{data.carbohidratos_100g}</td>
                   <td className="py-1 text-right font-bold">{data.carbohidratos_porcion}</td>
@@ -182,7 +219,7 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
               </tbody>
             </table>
 
-            <div className="mt-4 text-xs font-bold uppercase leading-tight">
+            <div className="mt-4 text-xs font-bold uppercase leading-tight border-b-2 border-black pb-4 mb-4">
               {alergenos.length > 0 ? (
                 <span>CONTIENE: {alergenos.join(', ')}.</span>
               ) : (
@@ -190,14 +227,38 @@ export function SimulationView({ recetaId, recetaNombre, porciones, pesoFinal }:
               )}
             </div>
 
+            {/* Cost Summary on the Printed Page */}
+            <div className="mt-4">
+              <h3 className="text-sm font-black uppercase text-center border-b border-black mb-2 pb-1">Desglose de Costos</h3>
+              <table className="w-full text-[10px] font-medium border-collapse">
+                <tbody>
+                  {ingredientesCosteo.map((ing, i) => (
+                    <tr key={i} className="border-b border-gray-200">
+                      <td className="py-1 italic">{ing.nombre}</td>
+                      <td className="py-1 text-right">{ing.peso}{ing.unidad === 'unidad' ? 'ud' : 'g'}</td>
+                      <td className="py-1 text-right font-bold tracking-tight">
+                        ${(ing.unidad === 'kg' || ing.unidad === 'litro' ? (ing.peso * ing.costo_unitario) / 1000 : (ing.peso * ing.costo_unitario)).toLocaleString('es-CL')}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-black font-black uppercase">
+                    <td colSpan={2} className="py-2 text-sm text-right pr-4">Costo Total Receta:</td>
+                    <td className="py-2 text-sm text-right">${costoTotal.toLocaleString('es-CL')}</td>
+                  </tr>
+                  <tr className="font-bold uppercase text-gray-700">
+                    <td colSpan={2} className="py-1 text-[11px] text-right pr-4">Costo por Porción:</td>
+                    <td className="py-1 text-[11px] text-right">${costoPorPorcion.toLocaleString('es-CL')}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-dotted border-black text-center text-[8px] font-bold opacity-50 italic">
+              Reporte generado por NUTRIETIQ - Sistema de Gestión Alimentaria
+            </div>
+
           </div>
 
-        </div>
-      ) : (
-        <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center justify-center text-muted-foreground">
-          <AlertTriangle className="h-10 w-10 mb-4 opacity-50" />
-          <p>No se ha generado la etiqueta.</p>
-          <p className="text-sm">Ejecuta la simulación para visualizar los resultados aquí.</p>
         </div>
       )}
     </div>

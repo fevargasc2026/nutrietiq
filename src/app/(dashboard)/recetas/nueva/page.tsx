@@ -10,7 +10,7 @@ export default async function NuevaRecetaPage() {
   const supabase = await createClient()
 
   // Need ingredients list to populate select
-  const { data: ingredientes } = await supabase.from('ingredientes').select('id, nombre, energia_kcal').order('nombre')
+  const { data: ingredientes } = await supabase.from('ingredientes').select('id, nombre, energia_kcal, costo_unitario, unidad_medida_costo').order('nombre')
 
   // Due to server actions limitations with complex dynamic lists, 
   // typical SPAs use Client Components for this form. 

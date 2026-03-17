@@ -10,13 +10,35 @@ export default async function SimuladorPage({ params }: { params: { id: string }
 
   const { data: receta } = await supabase
     .from('recetas')
-    .select('id, nombre, porciones, peso_final')
+    .select(`
+      id, 
+      nombre, 
+      porciones, 
+      peso_final,
+      receta_ingredientes (
+        peso_gramos,
+        ingredientes (
+          id,
+          nombre,
+          costo_unitario,
+          unidad_medida_costo
+        )
+      )
+    `)
     .eq('id', params.id)
     .single()
 
   if (!receta) {
     return <div>Receta no encontrada</div>
   }
+
+  // Map ingredients for the view
+  const ingredientesCosteo = receta.receta_ingredientes.map((ri: any) => ({
+    nombre: ri.ingredientes.nombre,
+    peso: ri.peso_gramos,
+    costo_unitario: ri.ingredientes.costo_unitario,
+    unidad: ri.ingredientes.unidad_medida_costo
+  }))
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -35,6 +57,7 @@ export default async function SimuladorPage({ params }: { params: { id: string }
         recetaNombre={receta.nombre} 
         porciones={receta.porciones} 
         pesoFinal={receta.peso_final} 
+        ingredientesCosteo={ingredientesCosteo}
       />
     </div>
   )

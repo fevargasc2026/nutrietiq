@@ -5,7 +5,13 @@ import { Save, Plus, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
-type IngredienteOpcion = { id: string; nombre: string; energia_kcal: number }
+type IngredienteOpcion = { 
+  id: string; 
+  nombre: string; 
+  energia_kcal: number;
+  costo_unitario: number;
+  unidad_medida_costo: string;
+}
 
 export function RecipeForm({ ingredientesLista }: { ingredientesLista: IngredienteOpcion[] }) {
   const router = useRouter()
@@ -36,7 +42,28 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
 
   const pesoBrutoNum = ingredientesSeleccionados.reduce((acc, curr) => acc + (parseFloat(curr.peso) || 0), 0)
   const pesoFinalNum = parseFloat(pesoFinal) || 1
+  const porcionesNum = parseInt(porciones) || 1
   const rendimiento = pesoFinalNum / (pesoBrutoNum || 1)
+
+  // Cost calculation logic
+  const calculateIngredientCost = (ingId: string, pesoGramos: string) => {
+    const ing = ingredientesLista.find(i => i.id === ingId)
+    if (!ing || !ing.costo_unitario) return 0
+    const peso = parseFloat(pesoGramos) || 0
+    
+    // Si la unidad es kg o litro, el costo es por 1000 unidades (g o ml)
+    if (ing.unidad_medida_costo === 'kg' || ing.unidad_medida_costo === 'litro') {
+      return (peso * ing.costo_unitario) / 1000
+    }
+    // Si es por unidad, asumimos que el peso ingresado es la cantidad de unidades
+    return peso * ing.costo_unitario
+  }
+
+  const costoTotalReceta = ingredientesSeleccionados.reduce((acc, curr) => {
+    return acc + calculateIngredientCost(curr.id, curr.peso)
+  }, 0)
+
+  const costoPorPorcion = costoTotalReceta / porcionesNum
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +81,7 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
         peso_bruto: pesoBrutoNum,
         peso_final: pesoFinalNum,
         factor_rendimiento: isNaN(rendimiento) ? 1.0 : parseFloat(rendimiento.toFixed(4)),
-        porciones: parseInt(porciones),
+        porciones: porcionesNum,
         usuario_creador: userData.user.id
       }).select('id').single()
 
@@ -84,7 +111,7 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-20">
       {errorStr && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">{errorStr}</div>}
       
       <div className="rounded-xl border bg-card shadow-sm p-6 space-y-4">
@@ -131,53 +158,81 @@ export function RecipeForm({ ingredientesLista }: { ingredientesLista: Ingredien
           </div>
         ) : (
           <div className="space-y-3">
-            {ingredientesSeleccionados.map((item, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="flex-1">
-                  <select 
-                    value={item.id} 
-                    onChange={e => updateIngredient(index, 'id', e.target.value)}
-                    required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="" disabled>Seleccione un ingrediente...</option>
-                    {ingredientesLista.map(ing => (
-                      <option key={ing.id} value={ing.id}>{ing.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-32">
-                  <div className="relative">
-                    <input 
-                      type="number" 
-                      min="0.1" 
-                      step="0.1" 
-                      required 
-                      value={item.peso} 
-                      onChange={e => updateIngredient(index, 'peso', e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm pr-8" 
-                      placeholder="Peso" 
-                    />
-                    <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">g</span>
+            <div className="flex items-center gap-3 px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="flex-1">Ingrediente</div>
+              <div className="w-32">Peso (g / ud)</div>
+              <div className="w-24 text-right">Costo</div>
+              <div className="w-10"></div>
+            </div>
+            {ingredientesSeleccionados.map((item, index) => {
+              const costoFila = calculateIngredientCost(item.id, item.peso)
+              return (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <select 
+                      value={item.id} 
+                      onChange={e => updateIngredient(index, 'id', e.target.value)}
+                      required
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="" disabled>Seleccione un ingrediente...</option>
+                      {ingredientesLista.map(ing => (
+                        <option key={ing.id} value={ing.id}>{ing.nombre}</option>
+                      ))}
+                    </select>
                   </div>
+                  <div className="w-32">
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        min="0.1" 
+                        step="0.1" 
+                        required 
+                        value={item.peso} 
+                        onChange={e => updateIngredient(index, 'peso', e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm pr-8" 
+                        placeholder="Peso" 
+                      />
+                      <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">
+                        {ingredientesLista.find(i => i.id === item.id)?.unidad_medida_costo === 'unidad' ? 'ud' : 'g'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-24 text-right text-sm font-medium text-green-600">
+                    ${costoFila.toLocaleString('es-CL')}
+                  </div>
+                  <button type="button" onClick={() => removeIngredient(index)} className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input text-red-600 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-                <button type="button" onClick={() => removeIngredient(index)} className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input text-red-600 hover:bg-red-50 hover:text-red-700">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
 
-      <div className="flex justify-end pt-2">
-        <button
-          disabled={loading}
-          type="submit"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          {loading ? 'Guardando...' : <><Save className="mr-2 h-4 w-4" /> Guardar Receta</>}
-        </button>
+      {/* Summary Footer bar pinned or at bottom */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1 rounded-xl border bg-green-50/50 p-6 flex justify-between items-center shadow-sm">
+          <div>
+            <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Costo Total Receta</p>
+            <p className="text-3xl font-black text-green-700">${costoTotalReceta.toLocaleString('es-CL')}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Costo por Porción</p>
+            <p className="text-xl font-bold text-green-700">${costoPorPorcion.toLocaleString('es-CL')}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end px-4">
+          <button
+            disabled={loading}
+            type="submit"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-8 py-2 shadow-lg"
+          >
+            {loading ? 'Guardando...' : <><Save className="mr-3 h-5 w-5" /> Guardar Receta y Valorización</>}
+          </button>
+        </div>
       </div>
 
     </form>

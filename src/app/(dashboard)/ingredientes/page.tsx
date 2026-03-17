@@ -48,13 +48,14 @@ export default async function IngredientesPage() {
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">H. de C. (g)</th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Azúcares (g)</th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Sodio (mg)</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Costo</th>
                   <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Acciones</th>
                 </tr>
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
                 {ingredientes?.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-muted-foreground text-sm border-b">
+                    <td colSpan={9} className="p-8 text-center text-muted-foreground text-sm border-b">
                       No hay ingredientes registrados. Comienza creando el primero.
                     </td>
                   </tr>
@@ -68,6 +69,9 @@ export default async function IngredientesPage() {
                       <td className="p-4 align-middle">{ing.carbohidratos_g}</td>
                       <td className="p-4 align-middle">{ing.azucares_g}</td>
                       <td className="p-4 align-middle">{ing.sodio_mg}</td>
+                      <td className="p-4 align-middle font-medium text-green-600">
+                        ${ing.costo_unitario?.toLocaleString('es-CL')} / {ing.unidad_medida_costo}
+                      </td>
                       <td className="p-4 align-middle">
                          <div className="flex items-center justify-center gap-2">
                            <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">

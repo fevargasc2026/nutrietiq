@@ -95,6 +95,9 @@ export default async function LoginPage(props: {
           </Link>
         </div>
       </div>
+      <p className="mt-6 text-xs text-muted-foreground/60 font-medium">
+        Desarrollado por FVC-2026
+      </p>
     </div>
   )
 }

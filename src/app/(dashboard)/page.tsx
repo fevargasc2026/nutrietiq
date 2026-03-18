@@ -11,17 +11,32 @@ export default async function Home() {
   const [
     { count: recetasCount },
     { count: ingredientesCount },
-    { count: usuariosCount }
+    { count: usuariosCount },
+    { count: calculosCount }
   ] = await Promise.all([
     supabase.from('recetas').select('*', { count: 'exact', head: true }),
     supabase.from('ingredientes').select('*', { count: 'exact', head: true }),
     supabase.from('usuarios').select('*', { count: 'exact', head: true }),
+    supabase.from('calculos_nutricionales').select('*', { count: 'exact', head: true }),
   ]);
+
+  // Fetch recent activity (last 5 calculations)
+  const { data: recentActivity } = await supabase
+    .from('calculos_nutricionales')
+    .select(`
+      id,
+      fecha_calculo,
+      recetas (
+        nombre
+      )
+    `)
+    .order('fecha_calculo', { ascending: false })
+    .limit(5);
 
   const stats = [
     { name: "Recetas Creadas", value: (recetasCount || 0).toString(), icon: FileText, change: "En el sistema" },
     { name: "Ingredientes Base", value: (ingredientesCount || 0).toString(), icon: Beaker, change: "Disponibles" },
-    { name: "Cálculos Nutricionales", value: "0", icon: Calculator, change: "Simulaciones" },
+    { name: "Cálculos Nutricionales", value: (calculosCount || 0).toString(), icon: Calculator, change: "Simulaciones" },
     { name: "Usuarios Activos", value: (usuariosCount || 0).toString(), icon: Users, change: "En la plataforma" },
   ];
 
@@ -51,13 +66,43 @@ export default async function Home() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm col-span-4 flex flex-col justify-between p-6">
-          <div>
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm col-span-4 flex flex-col p-6">
+          <div className="mb-4">
             <h3 className="font-semibold leading-none tracking-tight">Actividad Reciente</h3>
-            <p className="text-sm text-muted-foreground mt-2">Cálculos generados recientemente.</p>
+            <p className="text-sm text-muted-foreground mt-2">Cálculos nutricionales realizados últimamente.</p>
           </div>
-          <div className="mt-8 flex items-center justify-center h-32 text-muted-foreground border-2 border-dashed rounded-lg">
-            No hay actividad reciente.
+          <div className="space-y-4">
+            {recentActivity && recentActivity.length > 0 ? (
+              <div className="divide-y">
+                {recentActivity.map((activity: any) => (
+                  <div key={activity.id} className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Calculator className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Cálculo: {activity.recetas?.nombre || 'Receta desconocida'}</p>
+                        <p className="text-xs text-muted-foreground">Generado exitosamente</p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground text-right">
+                      {new Date(activity.fecha_calculo).toLocaleDateString('es-CL')}
+                      <br />
+                      {new Date(activity.fecha_calculo).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-muted-foreground border-2 border-dashed rounded-lg">
+                No hay actividad reciente.
+              </div>
+            )}
+            {recentActivity && recentActivity.length > 0 && (
+              <Link href="/recetas" className="text-sm text-primary hover:underline font-medium block text-center pt-2">
+                Ver todas las recetas
+              </Link>
+            )}
           </div>
         </div>
         

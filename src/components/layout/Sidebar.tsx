@@ -6,7 +6,7 @@ const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Ingredientes', href: '/ingredientes', icon: Beaker },
   { name: 'Recetas', href: '/recetas', icon: Utensils },
-  { name: 'Simulador', href: '/simulador', icon: FileText },
+  { name: 'Cálculo Nutricional', href: '/simulador', icon: FileText },
   { name: 'Configuración', href: '/configuracion', icon: Settings },
   { name: 'Usuarios', href: '/usuarios', icon: Users, roles: ['SuperUsuario'] },
 ];

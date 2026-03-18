@@ -78,7 +78,7 @@ export default async function RecetasPage() {
                       <td className="p-4 align-middle">{receta.peso_final}</td>
                       <td className="p-4 align-middle">{receta.porciones}</td>
                       <td className="p-4 align-middle">{(receta.usuarios as any)?.nombre || 'Desconocido'}</td>
-                      <td className="p-4 align-middle">{new Date(receta.fecha_creacion).toLocaleDateString()}</td>
+                      <td className="p-4 align-middle">{new Date(receta.fecha_creacion).toLocaleDateString('es-CL')}</td>
                       <td className="p-4 align-middle">
                          <div className="flex items-center justify-center gap-2">
                            <Link 

@@ -115,7 +115,7 @@ export function SimulationView({
         <div className="rounded-xl border bg-card p-6 shadow-sm flex flex-col items-center text-center space-y-4">
           <Calculator className="h-12 w-12 text-primary opacity-80" />
           <div>
-            <h3 className="text-lg font-medium tracking-tight">Ejecutar Simulación</h3>
+            <h3 className="text-lg font-medium tracking-tight">Calculadora</h3>
             <p className="text-sm text-muted-foreground mt-1">Calcula los aportes y genera la etiqueta en base a la Ley de Etiquetado.</p>
           </div>
           <button 
@@ -123,7 +123,7 @@ export function SimulationView({
             disabled={loading}
             className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
-            {loading ? 'Calculando...' : 'Simular Etiqueta'}
+            {loading ? 'Calculando...' : 'Generar Etiqueta'}
           </button>
           {errorStr && <p className="text-sm text-red-600 font-medium">{errorStr}</p>}
         </div>

@@ -114,19 +114,19 @@ export default async function Home() {
           <div className="mt-8 flex flex-col gap-3">
             <Link 
               href="/recetas/nueva"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-primary/30 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground hover:shadow-md hover:scale-[1.02] h-10 px-4 py-2 w-full"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-slate-300 bg-background text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-900 hover:shadow-md h-10 px-4 py-2 w-full"
             >
               Crear Nueva Receta
             </Link>
             <Link 
               href="/ingredientes/nuevo"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-primary/30 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground hover:shadow-md hover:scale-[1.02] h-10 px-4 py-2 w-full"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-slate-300 bg-background text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-900 hover:shadow-md h-10 px-4 py-2 w-full"
             >
               Añadir Ingrediente
             </Link>
             <Link 
               href="/recetas"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-primary/30 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground hover:shadow-md hover:scale-[1.02] h-10 px-4 py-2 w-full"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 border border-slate-300 bg-background text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-900 hover:shadow-md h-10 px-4 py-2 w-full"
             >
               Generar Etiqueta
             </Link>

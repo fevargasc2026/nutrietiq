@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { Save, AlertTriangle } from 'lucide-react'
+import { Save, AlertTriangle, Sparkles, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { forceRevalidate } from '@/app/actions'
@@ -14,7 +14,9 @@ export function IngredientForm({
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [loadingUSDA, setLoadingUSDA] = useState(false)
   const [errorStr, setErrorStr] = useState("")
+  const [usdaMessage, setUsdaMessage] = useState("")
 
   const [nombre, setNombre] = useState(initialData?.nombre || "")
   const [alergenos, setAlergenos] = useState(initialData?.alergenos?.join(', ') || "")
@@ -29,6 +31,69 @@ export function IngredientForm({
   const [unidad_medida_costo, setUnidad] = useState(initialData?.unidad_medida_costo || "kg")
   const [added_sugars, setAddedSugars] = useState(initialData?.added_sugars || false)
   const [added_saturated_fats, setAddedSatFats] = useState(initialData?.added_saturated_fats || false)
+
+  // Función para consultar USDA
+  const handleUSDAQuery = async () => {
+    if (!nombre || nombre.trim() === '') {
+      setErrorStr("Por favor ingresa el nombre del ingrediente primero")
+      return
+    }
+
+    setLoadingUSDA(true)
+    setErrorStr("")
+    setUsdaMessage("")
+
+    try {
+      const response = await fetch('/api/usda-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombre }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al consultar USDA')
+      }
+
+      // Llenar los campos automáticamente
+      if (data.composicion_nutricional) {
+        const nutrient = data.composicion_nutricional
+        setEnergia(nutrient.energia_kcal?.toString() || "0")
+        setProteina(nutrient.proteinas_g?.toString() || "0")
+        setGrasa(nutrient.grasa_total_g?.toString() || "0")
+        setGrasaSaturada(nutrient.grasa_saturada_g?.toString() || "0")
+        setCarbohidratos(nutrient.hidratos_carbono_g?.toString() || "0")
+        setAzucares(nutrient.azucares_totales_g?.toString() || "0")
+        setSodio(nutrient.sodio_mg?.toString() || "0")
+      }
+
+      if (data.parametros_ley) {
+        setAddedSugars(data.parametros_ley.azucares_añadidos || false)
+        setAddedSatFats(data.parametros_ley.grasas_saturadas_añadidas || false)
+      }
+
+      if (data.informacion_general) {
+        if (data.informacion_general.alergenos_sugeridos) {
+          setAlergenos(data.informacion_general.alergenos_sugeridos)
+        }
+        // Solo actualizar nombre si está vacío o si el usuario quiere
+        if (!nombre && data.informacion_general.nombre_sugerido_es) {
+          setNombre(data.informacion_general.nombre_sugerido_es)
+        }
+      }
+
+      setUsdaMessage(data.informacion_general?.nombre_original_usda
+        ? `Datos cargados desde USDA: ${data.informacion_general.nombre_original_usda}`
+        : 'Datos nutricionales cargados correctamente')
+    } catch (err: any) {
+      setErrorStr(err.message || 'Error al consultar la base de datos USDA')
+    } finally {
+      setLoadingUSDA(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,7 +153,33 @@ export function IngredientForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium leading-none">Nombre del Ingrediente</label>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} type="text" required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej. Harina de Trigo" />
+              <div className="flex gap-2">
+                <input
+                  value={nombre}
+                  onChange={e => setNombre(e.target.value)}
+                  type="text"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Ej. Harina de Trigo"
+                />
+                <button
+                  type="button"
+                  onClick={handleUSDAQuery}
+                  disabled={loadingUSDA}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300 h-10 px-3 py-2"
+                  title="Consultar Base de Datos USDA"
+                >
+                  {loadingUSDA ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  <span className="ml-2 hidden sm:inline">USDA</span>
+                </button>
+              </div>
+              {usdaMessage && (
+                <p className="text-xs text-green-600 mt-1">{usdaMessage}</p>
+              )}
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium leading-none">Alérgenos (separados por coma)</label>

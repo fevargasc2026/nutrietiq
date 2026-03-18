@@ -277,7 +277,7 @@ export function SimulationView({
         <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center justify-center text-muted-foreground">
           <AlertTriangle className="h-10 w-10 mb-4 opacity-50" />
           <p>No se ha generado la etiqueta.</p>
-          <p className="text-sm">Ejecuta la simulación para visualizar los resultados aquí.</p>
+          <p className="text-sm">Ejecuta el cálculo para visualizar los resultados aquí.</p>
         </div>
       )}
     </div>

@@ -36,7 +36,7 @@ export default async function Home() {
   const stats = [
     { name: "Recetas Creadas", value: (recetasCount || 0).toString(), icon: FileText, change: "En el sistema" },
     { name: "Ingredientes Base", value: (ingredientesCount || 0).toString(), icon: Beaker, change: "Disponibles" },
-    { name: "Cálculos Nutricionales", value: (calculosCount || 0).toString(), icon: Calculator, change: "Simulaciones" },
+    { name: "Cálculos Nutricionales", value: (calculosCount || 0).toString(), icon: Calculator, change: "Cálculos" },
     { name: "Usuarios Activos", value: (usuariosCount || 0).toString(), icon: Users, change: "En la plataforma" },
   ];
 

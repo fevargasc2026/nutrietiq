@@ -27,7 +27,7 @@ export default async function RecetasPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Recetas</h1>
-          <p className="text-muted-foreground">Administra las formulaciones y genera simulaciones nutricionales.</p>
+          <p className="text-muted-foreground">Administra las formulaciones y genera cálculos nutricionales.</p>
         </div>
         <div className="flex items-center gap-2">
           <RefreshButton path="/recetas" />

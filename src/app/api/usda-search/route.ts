@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 // API Key de USDA
-const USDA_API_KEY = 'EI0BNfROiU1GPHbin32xpnT8HreKnRUcOeEbwdwv'
+const USDA_API_KEY = 'HVGo7uydDWzOYYGnar9Mdfa3jmWCssp1mXgp5kND'
 const USDA_BASE_URL = 'https://api.nal.usda.gov/fdc/v1'
 
 // Diccionario de traducción español -> inglés técnico USDA
@@ -302,12 +302,15 @@ export async function POST(request: Request) {
     const searchParams = new URLSearchParams({
       api_key: USDA_API_KEY,
       query: englishSearch,
-      dataType: ['Foundation', 'SR Legacy'].join(','),
+      format: 'abridged',
       pageSize: '10',
       sortBy: 'relevance',
     })
 
-    const searchResponse = await fetch(`${searchUrl}?${searchParams}`, {
+    const fullUrl = `${searchUrl}?${searchParams}`
+    console.log('USDA Request URL:', fullUrl)
+
+    const searchResponse = await fetch(fullUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -45,9 +45,9 @@ export function Sidebar({ userRole }: SidebarProps) {
         <form action={signOut}>
           <button 
             type="submit"
-            className="flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+            className="flex w-full items-center px-4 py-3 text-sm font-bold rounded-xl text-primary bg-primary/5 border border-primary/10 hover:bg-primary hover:text-primary-foreground transition-all duration-300 shadow-sm hover:shadow-md group"
           >
-            <LogOut className="mr-3 h-4 w-4" />
+            <LogOut className="mr-3 h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
             Cerrar Sesión
           </button>
         </form>

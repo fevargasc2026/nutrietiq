@@ -28,6 +28,11 @@ BEGIN
         v_rol := 'Administrador';
     END IF;
 
+    -- Ensure the company exists in the empresa table to avoid FK violation
+    INSERT INTO public.empresa (empresa, rut, direccion, resolucion, fecha_res)
+    VALUES (v_empresa, 'S/R', 'Sin Dirección', '0', CURRENT_DATE)
+    ON CONFLICT (empresa) DO NOTHING;
+
     INSERT INTO public.usuarios (id, nombre, email, rol, empresa)
     VALUES (new.id, v_nombre, new.email, v_rol, v_empresa);
     

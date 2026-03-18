@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { SimulationView } from '@/components/SimulationView'
+import { getEmpresaConfig } from '@/app/actions/configuracion'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,6 +45,9 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
     )
   }
 
+  // Fetch company config for the label
+  const companyData = await getEmpresaConfig()
+
   // Map ingredients for the view
   const ingredientesCosteo = receta.receta_ingredientes.map((ri: any) => ({
     nombre: ri.ingredientes.nombre,
@@ -72,6 +76,7 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
         costoIndirectoPct={receta.costo_indirecto_pct}
         markupFactor={receta.markup_factor}
         ingredientesCosteo={ingredientesCosteo}
+        companyData={companyData}
       />
     </div>
   )

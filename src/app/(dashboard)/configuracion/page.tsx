@@ -1,14 +1,27 @@
 import { Settings } from 'lucide-react'
+import { getEmpresaConfig } from '@/app/actions/configuracion'
+import { CompanyConfigForm } from '@/components/forms/CompanyConfigForm'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
 
-export default function ConfiguracionPage() {
+export default async function ConfiguracionPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) redirect('/login')
+
+  const companyData = await getEmpresaConfig()
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Configuración</h1>
-        <p className="text-muted-foreground">Administra las preferencias de tu cuenta y del sistema.</p>
+        <p className="text-muted-foreground">Administra los parámetros de la empresa y preferencias del sistema.</p>
       </div>
 
       <div className="grid gap-6">
+        <CompanyConfigForm initialData={companyData} />
+
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-2 bg-primary/10 rounded-lg">

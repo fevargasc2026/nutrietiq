@@ -31,7 +31,8 @@ export function SimulationView({
   pesoFinal,
   costoIndirectoPct = 5,
   markupFactor = 3.0,
-  ingredientesCosteo = []
+  ingredientesCosteo = [],
+  companyData = null
 }: { 
   recetaId: string, 
   recetaNombre: string, 
@@ -39,7 +40,8 @@ export function SimulationView({
   pesoFinal: number,
   costoIndirectoPct?: number,
   markupFactor?: number,
-  ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[]
+  ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[],
+  companyData?: { empresa: string, rut: string, direccion: string, resolucion: string, fecha_res: string } | null
 }) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<Calculo | null>(null)
@@ -136,7 +138,7 @@ export function SimulationView({
               <span className="text-lg font-black text-green-800">${Math.round(costoTotal).toLocaleString('es-CL')}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-green-600 italic">
-              <span>+ {costoIndirectoPct}% Costos Ocultos:</span>
+              <span>+ {costoIndirectoPct} % Costos Ocultos:</span>
               <span>$ {Math.round(costoIndirecto).toLocaleString('es-CL')}</span>
             </div>
             <div className="border-t border-green-200 pt-2 flex justify-between items-center">
@@ -255,8 +257,17 @@ export function SimulationView({
               )}
             </div>
 
+            {/* Company Info on Label */}
+            {companyData && companyData.empresa !== 'Sin Empresa' && (
+              <div className="text-[10px] leading-tight space-y-0.5 border-t border-black pt-2 mb-4">
+                <p className="font-black uppercase">{companyData.empresa}</p>
+                <p>RUT: {companyData.rut}</p>
+                <p>{companyData.direccion}</p>
+                <p>{companyData.resolucion} de fecha {new Date(companyData.fecha_res).toLocaleDateString('es-CL')}</p>
+              </div>
+            )}
 
-            <div className="mt-8 pt-4 border-t border-dotted border-black text-center text-[8px] font-bold opacity-50 italic">
+            <div className="mt-4 pt-4 border-t border-dotted border-black text-center text-[8px] font-bold opacity-50 italic">
               Reporte generado por NUTRIETIQ - Sistema de Gestión Alimentaria
             </div>
 

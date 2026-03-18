@@ -64,7 +64,9 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
         </Link>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Simulador Nutricional</h1>
-          <p className="text-muted-foreground">Evaluación de la receta: {receta.nombre}</p>
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            Receta: <span className="font-bold text-foreground text-lg">{receta.nombre}</span>
+          </p>
         </div>
       </div>
 

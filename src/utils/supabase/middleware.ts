@@ -35,8 +35,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Rutas públicas que no requieren autenticación
+  const isPublicApi = request.nextUrl.pathname.startsWith('/api/usda-search')
+
   if (
     !user &&
+    !isPublicApi &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/register') &&
     !request.nextUrl.pathname.startsWith('/auth')

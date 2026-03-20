@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient as createSupabaseServerClient } from '@/utils/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 
 // Diccionario de traducción español -> inglés técnico USDA
@@ -232,21 +233,20 @@ function translateToSpanish(englishName: string): string {
 
 export async function POST(request: Request) {
   try {
+    // Intentar primero con el cliente de servidor autenticado (usa cookies del usuario)
+    let supabase = await createSupabaseServerClient()
+    
+    // Verificamos si podemos usar el Service Role Key (opcional, fallback robuso)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
                                process.env.SERVICE_ROLE_KEY || 
                                process.env.SUPABASE_SERVICE_KEY
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      const missing = !supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : 'SUPABASE_SERVICE_ROLE_KEY / SERVICE_ROLE_KEY'
-      console.error(`Missing environment variable: ${missing}`)
-      return NextResponse.json(
-        { error: `Error de configuración: falta ${missing}` },
-        { status: 500 }
-      )
+    // Si tenemos Service Role Key, usamos un cliente con privilegios adicionales (bypass RLS)
+    // Esto es útil si la sesión del usuario tiene problemas
+    if (supabaseUrl && supabaseServiceKey) {
+      supabase = createClient(supabaseUrl, supabaseServiceKey)
     }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const body = await request.json()
     const ingredientName = body.nombre as string
@@ -299,7 +299,11 @@ export async function POST(request: Request) {
 
     if (errorInitial) {
       console.error('Error consultando Supabase:', errorInitial)
-      throw new Error('Error de base de datos')
+      // Si el error es de permisos (403/RLS), informamos mas detallado
+      return NextResponse.json(
+        { error: `Error de base de datos: ${errorInitial.message}. Asegúrate de que el usuario esté autenticado.` },
+        { status: 500 }
+      )
     }
 
     if (!foods || foods.length === 0) {

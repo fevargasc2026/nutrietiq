@@ -136,7 +136,7 @@ function translateToEnglish(spanishName: string): string {
   return spanishName.toLowerCase().trim()
 }
 
-// Inferir alérgenos basados en el nombre del ingrediente
+// Inferir alérgenos basados en el nombre del ingrediente (Lógica local / Fallback)
 function inferAllergens(ingredientName: string): string[] {
   const name = ingredientName.toLowerCase()
   const allergens: string[] = []
@@ -175,6 +175,44 @@ function inferAllergens(ingredientName: string): string[] {
   }
 
   return allergens
+}
+
+// Llamada a DeepSeek AI para evaluación inteligente de alérgenos
+async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> {
+  const apiKey = process.env.DEEPSEEK_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "system",
+            content: "Eres un experto en seguridad alimentaria y nutrición clínica. Tu tarea es identificar alérgenos en ingredientes de alimentos basándote en la normativa internacional y chilena (Ley 20.606). Debes identificar exclusivamente alérgenos de esta lista: Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo. Responde ÚNICAMENTE en formato JSON. Formato: {\"alergenos\": [\"Nombre1\", \"Nombre2\"]}"
+          },
+          {
+            role: "user",
+            content: `Ingrediente: ${ingredientName}. Evalúa los alérgenos presentes.`
+          }
+        ],
+        response_format: { type: "json_object" }
+      })
+    })
+
+    if (!response.ok) return null
+    const data = await response.json()
+    const content = JSON.parse(data.choices[0].message.content)
+    return content.alergenos || []
+  } catch (error) {
+    console.error('Error calling DeepSeek API:', error)
+    return null
+  }
 }
 
 // Determinar si contiene azúcares añadidos
@@ -229,6 +267,7 @@ function translateToSpanish(englishName: string): string {
     'lettuce': 'Lechuga',
     'spinach': 'Espinaca',
     'broccoli': 'Brócoli',
+    'carrot,': 'Zanahoria,',
   }
 
   for (const [eng, esp] of Object.entries(reverseMap)) {
@@ -307,7 +346,6 @@ export async function POST(request: Request) {
 
     if (errorInitial) {
       console.error('Error consultando Supabase:', errorInitial)
-      // Si el error es de permisos (403/RLS), informamos mas detallado
       return NextResponse.json(
         { error: `Error de base de datos: ${errorInitial.message}. Asegúrate de que el usuario esté autenticado.` },
         { status: 500 }
@@ -345,10 +383,28 @@ export async function POST(request: Request) {
     const azucaresAñadidos = hasAddedSugars(descripcion)
     const grasasSaturadasAñadidas = hasAddedSaturatedFats(descripcion)
 
-    // 6. Usar alérgenos de la tabla o inferir
+    // 6. Alérgenos inteligentes (DB -> AI -> Regex)
     let alergenos = food.alergenos || []
+    
+    // Si la DB no tiene alérgenos, intentamos con IA (DeepSeek)
     if (alergenos.length === 0) {
-      alergenos = inferAllergens(food.description || englishSearch)
+      const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
+      if (aiAlergenos && aiAlergenos.length > 0) {
+        alergenos = aiAlergenos
+        
+        // CACHING: Guardar el resultado de la IA en la DB para futuras consultas (silenciosamente)
+        try {
+          await supabase
+            .from('usda_alimentos')
+            .update({ alergenos: aiAlergenos })
+            .eq('id', food.id)
+        } catch (e) {
+          console.error('Error caching AI allergens:', e)
+        }
+      } else {
+        // Fallback final: Lógica de Regex local
+        alergenos = inferAllergens(food.description || englishSearch)
+      }
     }
 
     // 7. Nombre sugerido en español

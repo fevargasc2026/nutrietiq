@@ -236,11 +236,10 @@ export async function POST(request: Request) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Supabase build-time check failed or environment variables missing')
-      // During build, we might not have these. If we are here at build time, it's problematic.
-      // But moving the initialization here prevents the top-level crash.
+      const missing = !supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : 'SUPABASE_SERVICE_ROLE_KEY'
+      console.error(`Missing environment variable: ${missing}`)
       return NextResponse.json(
-        { error: 'Configuración del servidor incompleta' },
+        { error: `Error de configuración: falta ${missing}` },
         { status: 500 }
       )
     }

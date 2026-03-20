@@ -291,6 +291,17 @@ export async function POST(request: Request) {
       foods = foodsEng
     }
 
+    // FALLBACK FINAL: Búsqueda aún más flexible antes de ir a IA para evitar duplicados
+    if (!foods || foods.length === 0) {
+      const query = ingredientName.length > 3 ? ingredientName.substring(0, 4) : ingredientName
+      const { data: foodsFlexible } = await supabase
+        .from('usda_alimentos')
+        .select('*')
+        .or(`description_es.ilike.%${query}%,description.ilike.%${query}%`)
+        .limit(5)
+      foods = foodsFlexible
+    }
+
     let food: any = null
     let esGeneradoIA = false
     let esNuevoRegistro = false

@@ -376,12 +376,13 @@ export async function POST(request: Request) {
     // Lógica de alérgenos y fuentes
     let alergenos = food.alergenos || []
     let origenAlergenos = 'Base de datos USDA'
+    const shortId = food.id ? `[ID: ${String(food.id).slice(0, 8)}]` : ''
     
     // Identificar la fuente real de los datos
     if (food.data_type === 'AI_GENERATED') {
-      origenAlergenos = 'IA-Deepseek (Aprendido)'
+      origenAlergenos = `IA-Deepseek (Aprendido) ${shortId}`
     } else if (esGeneradoIA) {
-      origenAlergenos = 'IA-Deepseek'
+      origenAlergenos = `IA-Deepseek ${shortId}`
     }
 
     // Si no hay alérgenos definidos, intentamos evaluarlos
@@ -389,18 +390,18 @@ export async function POST(request: Request) {
       const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
       if (aiAlergenos && aiAlergenos.length > 0) {
         alergenos = aiAlergenos
-        origenAlergenos = food.data_type === 'AI_GENERATED' ? 'IA-Deepseek (Aprendido)' : 'IA-Deepseek'
+        origenAlergenos = food.data_type === 'AI_GENERATED' ? `IA-Deepseek (Aprendido) ${shortId}` : `IA-Deepseek ${shortId}`
         try {
           await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
         } catch (e) {}
       } else {
         alergenos = inferAllergens(food.description || englishSearch)
-        origenAlergenos = 'Análisis automático Nutrietiq'
+        origenAlergenos = `Análisis automático Nutrietiq ${shortId}`
       }
     } else {
       // Ajuste final de etiqueta si ya tiene alérgenos pero es de la base oficial
       if (food.data_type !== 'AI_GENERATED' && !esGeneradoIA) {
-         origenAlergenos = 'Base de datos USDA (Aprendido)'
+         origenAlergenos = `Base de datos USDA (Aprendido) ${shortId}`
       }
     }
 
@@ -412,6 +413,7 @@ export async function POST(request: Request) {
         nombre_original_usda: food.description || englishSearch,
         alergenos_sugeridos: alergenos.length > 0 ? alergenos.join(', ') : '',
         origen_alergenos: origenAlergenos,
+        db_id: food.id,
         es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED',
         mensaje_sistema: esNuevoRegistro ? 'Ingrediente/alimento incorporado a la data' : null
       },

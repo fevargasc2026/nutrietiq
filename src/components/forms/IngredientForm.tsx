@@ -46,6 +46,8 @@ export function IngredientForm({
     setLoadingUSDA(true)
     setErrorStr("")
     setUsdaMessage("")
+    setSystemMessage("")
+    setAlergenos("")
     setAlergenosSource("")
 
     try {
@@ -82,12 +84,9 @@ export function IngredientForm({
 
       const infoGeneral = data.informacion_general
       if (infoGeneral) {
-        if (infoGeneral.alergenos_sugeridos) {
-          setAlergenos(infoGeneral.alergenos_sugeridos)
-        }
-        if (infoGeneral.origen_alergenos) {
-          setAlergenosSource(infoGeneral.origen_alergenos)
-        }
+        setAlergenos(infoGeneral.alergenos_sugeridos || "")
+        setAlergenosSource(infoGeneral.origen_alergenos || "")
+        
         if (infoGeneral.mensaje_sistema) {
           setSystemMessage(infoGeneral.mensaje_sistema)
         } else {
@@ -168,7 +167,21 @@ export function IngredientForm({
               <div className="flex gap-2">
                 <input
                   value={nombre}
-                  onChange={e => setNombre(e.target.value)}
+                  onChange={e => {
+                    setNombre(e.target.value)
+                    // Limpiar sugerencias anteriores al cambiar el nombre
+                    if (usdaMessage) setUsdaMessage("")
+                    if (systemMessage) setSystemMessage("")
+                    if (alergenosSource) {
+                      setAlergenosSource("")
+                      setAlergenos("")
+                    }
+                  }}
+                  onFocus={() => {
+                    // Limpiar sugerencias al tomar foco para nueva búsqueda
+                    if (usdaMessage) setUsdaMessage("")
+                    if (systemMessage) setSystemMessage("")
+                  }}
                   type="text"
                   required
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

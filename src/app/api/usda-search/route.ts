@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Cliente de Supabase para el servidor
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
 // Diccionario de traducción español -> inglés técnico USDA
 const translationMap: Record<string, string> = {
   'harina de trigo': 'wheat flour white all purpose',
@@ -237,6 +232,21 @@ function translateToSpanish(englishName: string): string {
 
 export async function POST(request: Request) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase build-time check failed or environment variables missing')
+      // During build, we might not have these. If we are here at build time, it's problematic.
+      // But moving the initialization here prevents the top-level crash.
+      return NextResponse.json(
+        { error: 'Configuración del servidor incompleta' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
     const body = await request.json()
     const ingredientName = body.nombre as string
 

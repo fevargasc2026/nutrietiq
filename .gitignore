@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# data
+/FoodData_Central_foundation_food_csv_2025-12-18/
+*.zip
+*.odt
+*.odp
+*.pdf
+usda_import.sql

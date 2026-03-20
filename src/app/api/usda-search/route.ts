@@ -252,7 +252,8 @@ export async function POST(request: Request) {
 
     // 2. Buscar en Supabase (tabla usda_alimentos)
     // Intentamos búsqueda por texto completo primero en español, luego en inglés
-    let { data: foods, error } = await supabase
+    let foods: any[] | null = null
+    const { data: foodsInitial, error: errorInitial } = await supabase
       .from('usda_alimentos')
       .select('*')
       .textSearch('description_es', ingredientName, { 
@@ -260,6 +261,8 @@ export async function POST(request: Request) {
         type: 'phrase'
       })
       .limit(5)
+    
+    foods = foodsInitial
 
     // Si no hay resultados exactos en español, probamos búsqueda amplia en español
     if (!foods || foods.length === 0) {
@@ -283,8 +286,8 @@ export async function POST(request: Request) {
       foods = foodsEng
     }
 
-    if (error) {
-      console.error('Error consultando Supabase:', error)
+    if (errorInitial) {
+      console.error('Error consultando Supabase:', errorInitial)
       throw new Error('Error de base de datos')
     }
 

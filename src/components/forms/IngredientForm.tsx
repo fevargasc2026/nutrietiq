@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { forceRevalidate } from '@/app/actions'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function IngredientForm({ 
   initialData 
 }: { 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any 
 }) {
   const router = useRouter()
@@ -90,8 +92,9 @@ export function IngredientForm({
       setUsdaMessage(infoGeneral?.nombre_original_usda
         ? `Datos cargados desde referencia: ${infoGeneral.nombre_original_usda}`
         : 'Datos nutricionales cargados correctamente desde la base local')
-    } catch (err: any) {
-      setErrorStr(err.message || 'Error al consultar la base de datos local')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al consultar la base de datos local'
+      setErrorStr(message)
     } finally {
       setLoadingUSDA(false)
     }
@@ -135,8 +138,9 @@ export function IngredientForm({
       await forceRevalidate('/ingredientes')
       router.push('/ingredientes')
       router.refresh()
-    } catch (err: any) {
-      setErrorStr(err.message || 'Error al guardar el ingrediente')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al guardar el ingrediente'
+      setErrorStr(message)
       setLoading(false)
     }
   }

@@ -251,21 +251,43 @@ function translateToSpanish(englishName: string): string {
 export async function GET() {
   try {
     const supabase = await createSupabaseServerClient()
-    const { data, error } = await supabase
+    
+    // 1. Obtener de la base de referencia (USDA)
+    const { data: usdaData, error: usdaError } = await supabase
       .from('usda_alimentos')
       .select('description_es, description')
       .order('description_es', { ascending: true })
 
-    if (error) throw error
+    if (usdaError) throw usdaError
 
-    // Obtener nombres únicos y limpios de ambos campos
+    // 2. Obtener de los ingredientes propios creados por el usuario
+    const { data: userData, error: userError } = await supabase
+      .from('ingredientes')
+      .select('nombre')
+      .order('nombre', { ascending: true })
+
+    if (userError) {
+      console.warn('Error fetching user ingredients (non-critical):', userError)
+    }
+
+    // Obtener nombres únicos y limpios
     const namesSet = new Set<string>()
-    data.forEach(item => {
+    
+    // Procesar USDA
+    usdaData?.forEach(item => {
       if (item.description_es) {
-        namesSet.add(item.description_es)
+        // Corrección de seguridad para evitar el error "Tomatees" si persiste en algún lado
+        const clean = item.description_es.replace(/Tomatees/g, 'Tomates')
+        namesSet.add(clean)
       } else if (item.description) {
-        // Traducir si solo tenemos el nombre en inglés
         namesSet.add(translateToSpanish(item.description))
+      }
+    })
+
+    // Procesar ingredientes de usuario
+    userData?.forEach(item => {
+      if (item.nombre) {
+        namesSet.add(item.nombre.replace(/Tomatees/g, 'Tomates'))
       }
     })
 

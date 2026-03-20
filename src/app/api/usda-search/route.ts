@@ -136,18 +136,18 @@ function translateToEnglish(spanishName: string): string {
   return spanishName.toLowerCase().trim()
 }
 
+// Helper para buscar palabras completas
+const containsWord = (text: string, words: string[]) => {
+  return words.some(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'i')
+    return regex.test(text)
+  })
+}
+
 // Inferir alérgenos basados en el nombre del ingrediente (Lógica local / Fallback)
 function inferAllergens(ingredientName: string): string[] {
   const name = ingredientName.toLowerCase()
   const allergens: string[] = []
-
-  // Helper para buscar palabras completas
-  const containsWord = (text: string, words: string[]) => {
-    return words.some(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'i')
-      return regex.test(text)
-    })
-  }
 
   if (containsWord(name, ['wheat', 'flour', 'trigo', 'harina', 'pan', 'pasta', 'cebada', 'avena', 'couscous', 'centeno', 'rye'])) {
     allergens.push('Gluten')
@@ -177,7 +177,7 @@ function inferAllergens(ingredientName: string): string[] {
   return allergens
 }
 
-// Llamada a DeepSeek AI para evaluación inteligente de alérgenos
+// Llamada a DeepSeek AI para evaluación inteligente de alérgenos (Modo experto)
 async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> {
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) return null
@@ -194,11 +194,11 @@ async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> 
         messages: [
           {
             role: "system",
-            content: "Eres un experto en seguridad alimentaria y nutrición clínica. Tu tarea es identificar alérgenos en ingredientes de alimentos basándote en la normativa internacional y chilena (Ley 20.606). Debes identificar exclusivamente alérgenos de esta lista: Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo. Responde ÚNICAMENTE en formato JSON. Formato: {\"alergenos\": [\"Nombre1\", \"Nombre2\"]}"
+            content: "Eres un experto en seguridad alimentaria. Identifica alérgenos de esta lista exclusiva: Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo. Responde ÚNICAMENTE un JSON: {\"alergenos\": []}"
           },
           {
             role: "user",
-            content: `Ingrediente: ${ingredientName}. Evalúa los alérgenos presentes.`
+            content: `Ingrediente: ${ingredientName}`
           }
         ],
         response_format: { type: "json_object" }
@@ -210,7 +210,59 @@ async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> 
     const content = JSON.parse(data.choices[0].message.content)
     return content.alergenos || []
   } catch (error) {
-    console.error('Error calling DeepSeek API:', error)
+    console.error('Error calling DeepSeek API (Allergens):', error)
+    return null
+  }
+}
+
+// Generación COMPLETA de alimento por IA (Modo generativo / Fallback 404)
+async function generateAIFoodSuggestion(ingredientName: string): Promise<any | null> {
+  const apiKey = process.env.DEEPSEEK_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "system",
+            content: `Eres un experto nutricionista. Tu tarea es proporcionar información nutricional ESTIMADA por cada 100g de un ingrediente. 
+            Debes responder ÚNICAMENTE en formato JSON con la siguiente estructura exacta:
+            {
+              "description": "Nombre técnico en inglés",
+              "description_es": "Nombre amigable en español",
+              "energia_kcal": número,
+              "proteina_g": número,
+              "grasa_total_g": número,
+              "grasa_saturada_g": número,
+              "carbohidratos_g": número,
+              "fibra_g": número,
+              "azucares_g": número,
+              "sodio_mg": número,
+              "alergenos": ["Lista", "de", "Alérgenos", "MINSAL"]
+            }
+            Importante: Los alérgenos válidos son: Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo.`
+          },
+          {
+            role: "user",
+            content: `Proporciona la información nutricional para: ${ingredientName}`
+          }
+        ],
+        response_format: { type: "json_object" }
+      })
+    })
+
+    if (!response.ok) return null
+    const data = await response.json()
+    return JSON.parse(data.choices[0].message.content)
+  } catch (error) {
+    console.error('Error calling DeepSeek API (Generation):', error)
     return null
   }
 }
@@ -280,17 +332,12 @@ function translateToSpanish(englishName: string): string {
 
 export async function POST(request: Request) {
   try {
-    // Intentar primero con el cliente de servidor autenticado (usa cookies del usuario)
     let supabase = await createSupabaseServerClient()
-    
-    // Verificamos si podemos usar el Service Role Key (opcional, fallback robuso)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
                                process.env.SERVICE_ROLE_KEY || 
                                process.env.SUPABASE_SERVICE_KEY
 
-    // Si tenemos Service Role Key, usamos un cliente con privilegios adicionales (bypass RLS)
-    // Esto es útil si la sesión del usuario tiene problemas
     if (supabaseUrl && supabaseServiceKey) {
       supabase = createClient(supabaseUrl, supabaseServiceKey)
     }
@@ -305,36 +352,27 @@ export async function POST(request: Request) {
       )
     }
 
-    // 1. Traducir al inglés para búsqueda
     const englishSearch = translateToEnglish(ingredientName)
 
-    // 2. Buscar en Supabase (tabla usda_alimentos)
-    // Intentamos búsqueda por texto completo primero en español, luego en inglés
+    // BÚSQUEDA EN BASE DE DATOS LOCAL
     let foods: any[] | null = null
-    const { data: foodsInitial, error: errorInitial } = await supabase
+    const { data: foodsInitial } = await supabase
       .from('usda_alimentos')
       .select('*')
-      .textSearch('description_es', ingredientName, { 
-        config: 'spanish',
-        type: 'phrase'
-      })
+      .textSearch('description_es', ingredientName, { config: 'spanish', type: 'phrase' })
       .limit(5)
     
     foods = foodsInitial
 
-    // Si no hay resultados exactos en español, probamos búsqueda amplia en español
     if (!foods || foods.length === 0) {
       const { data: foodsWide } = await supabase
         .from('usda_alimentos')
         .select('*')
-        .textSearch('description_es', ingredientName.split(' ').join(' & '), { 
-          config: 'spanish'
-        })
+        .textSearch('description_es', ingredientName.split(' ').join(' & '), { config: 'spanish' })
         .limit(5)
       foods = foodsWide
     }
 
-    // Si sigue sin haber resultados, probamos en inglés con la traducción
     if (!foods || foods.length === 0) {
       const { data: foodsEng } = await supabase
         .from('usda_alimentos')
@@ -344,25 +382,47 @@ export async function POST(request: Request) {
       foods = foodsEng
     }
 
-    if (errorInitial) {
-      console.error('Error consultando Supabase:', errorInitial)
-      return NextResponse.json(
-        { error: `Error de base de datos: ${errorInitial.message}. Asegúrate de que el usuario esté autenticado.` },
-        { status: 500 }
-      )
+    let food: any = null
+    let esGeneradoIA = false
+
+    // FALLBACK A IA SI NO SE ENCONTRÓ EN LA DB
+    if (!foods || foods.length === 0) {
+      const aiGeneratedFood = await generateAIFoodSuggestion(ingredientName)
+      if (aiGeneratedFood) {
+        food = aiGeneratedFood
+        esGeneradoIA = true
+        
+        // CACHING: Insertar el nuevo alimento generado en la DB para el futuro
+        try {
+          const { data: insertedFood } = await supabase
+            .from('usda_alimentos')
+            .insert({
+              ...aiGeneratedFood,
+              data_type: 'AI_GENERATED',
+              fdc_id: Math.floor(Math.random() * 1000000) // ID ficticio para mantener esquema
+            })
+            .select()
+            .single()
+          
+          if (insertedFood) {
+            food = insertedFood
+          }
+        } catch (e) {
+          console.error('Error caching AI generated food:', e)
+        }
+      }
+    } else {
+      food = foods[0]
     }
 
-    if (!foods || foods.length === 0) {
+    if (!food) {
       return NextResponse.json(
-        { error: `No se encontró información nutricional para "${ingredientName}" en la base de datos local.` },
+        { error: `No se encontró información para "${ingredientName}" ni fue posible generarla con IA.` },
         { status: 404 }
       )
     }
 
-    // Usar el primer resultado
-    const food = foods[0]
-
-    // 3. Extraer nutrientes
+    // Procesar nutrientes
     const energia = food.energia_kcal ?? 0
     const proteina = food.proteina_g ?? 0
     const grasaTotal = food.grasa_total_g ?? 0
@@ -372,56 +432,45 @@ export async function POST(request: Request) {
     const azucares = food.azucares_g ?? 0
     const sodio = food.sodio_mg ?? 0
 
-    // 4. Calcular carbohidratos disponibles (totales - fibra)
-    let hidratosCarbono = carbohidratos
-    if (fibra > 0 && carbohidratos > 50) {
-      hidratosCarbono = Math.max(0, carbohidratos - fibra)
-    }
+    const hidratosCarbono = (fibra > 0 && carbohidratos > 50) ? Math.max(0, carbohidratos - fibra) : carbohidratos
 
-    // 5. Determinar parámetros ley de etiquetado
     const descripcion = food.description || ''
     const azucaresAñadidos = hasAddedSugars(descripcion)
     const grasasSaturadasAñadidas = hasAddedSaturatedFats(descripcion)
 
-    // 6. Alérgenos inteligentes (DB -> AI -> Regex)
+    // Lógica de alérgenos
     let alergenos = food.alergenos || []
     let origenAlergenos = 'Base de datos'
     
-    // Si la DB no tiene alérgenos, intentamos con IA (DeepSeek)
     if (alergenos.length === 0) {
-      const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
-      if (aiAlergenos && aiAlergenos.length > 0) {
-        alergenos = aiAlergenos
-        origenAlergenos = 'Inteligencia Artificial (DeepSeek)'
-        
-        // CACHING: Guardar el resultado de la IA en la DB para futuras consultas (silenciosamente)
-        try {
-          await supabase
-            .from('usda_alimentos')
-            .update({ alergenos: aiAlergenos })
-            .eq('id', food.id)
-        } catch (e) {
-          console.error('Error caching AI allergens:', e)
-        }
+      if (esGeneradoIA) {
+        origenAlergenos = 'Generado por IA (DeepSeek)'
       } else {
-        // Fallback final: Lógica de Regex local
-        alergenos = inferAllergens(food.description || englishSearch)
-        origenAlergenos = 'Análisis automático (Local)'
+        const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
+        if (aiAlergenos && aiAlergenos.length > 0) {
+          alergenos = aiAlergenos
+          origenAlergenos = 'Evaluado por IA (DeepSeek)'
+          try {
+            await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
+          } catch (e) {}
+        } else {
+          alergenos = inferAllergens(food.description || englishSearch)
+          origenAlergenos = 'Análisis automático (Local)'
+        }
       }
     } else {
-      origenAlergenos = 'Base de datos (Aprendido)'
+      origenAlergenos = esGeneradoIA ? 'Generado por IA (Aprendido)' : 'Base de datos (Aprendido)'
     }
 
-    // 7. Nombre sugerido en español
     const nombreSugeridoEs = food.description_es || translateToSpanish(food.description || englishSearch)
 
-    // Construir respuesta
     const result = {
       informacion_general: {
         nombre_sugerido_es: nombreSugeridoEs,
         nombre_original_usda: food.description || englishSearch,
         alergenos_sugeridos: alergenos.length > 0 ? alergenos.join(', ') : '',
         origen_alergenos: origenAlergenos,
+        es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED'
       },
       composicion_nutricional: {
         energia_kcal: energia,
@@ -441,9 +490,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error en USDA search:', error)
-    return NextResponse.json(
-      { error: 'Error al consultar la base de datos USDA' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Error al consultar la base de datos' }, { status: 500 })
   }
 }

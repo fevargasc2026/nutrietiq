@@ -141,28 +141,36 @@ function inferAllergens(ingredientName: string): string[] {
   const name = ingredientName.toLowerCase()
   const allergens: string[] = []
 
-  if (name.includes('wheat') || name.includes('flour') || name.includes('trigo') || name.includes('harina') || name.includes('pan') || name.includes('pasta') || name.includes('cebada') || name.includes('avena')) {
+  // Helper para buscar palabras completas
+  const containsWord = (text: string, words: string[]) => {
+    return words.some(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'i')
+      return regex.test(text)
+    })
+  }
+
+  if (containsWord(name, ['wheat', 'flour', 'trigo', 'harina', 'pan', 'pasta', 'cebada', 'avena', 'couscous', 'centeno', 'rye'])) {
     allergens.push('Gluten')
   }
-  if (name.includes('milk') || name.includes('leche') || name.includes('cheese') || name.includes('queso') || name.includes('butter') || name.includes('mantequilla') || name.includes('yogur') || name.includes('cream') || name.includes('crema') || name.includes('lactosa')) {
+  if (containsWord(name, ['milk', 'leche', 'cheese', 'queso', 'butter', 'mantequilla', 'yogur', 'cream', 'crema', 'lactosa', 'suero', 'whey', 'caseina'])) {
     allergens.push('Lácteos')
   }
-  if (name.includes('egg') || name.includes('huevo') || name.includes('mayonnaise') || name.includes('mayonesa')) {
+  if (containsWord(name, ['egg', 'huevo', 'mayonnaise', 'mayonesa', 'albúmina'])) {
     allergens.push('Huevos')
   }
-  if (name.includes('soy') || name.includes('soya') || name.includes('soja')) {
+  if (containsWord(name, ['soy', 'soya', 'soja', 'lecytina', 'lecithin'])) {
     allergens.push('Soya')
   }
-  if (name.includes('peanut') || name.includes('maní') || name.includes('cacahuate') || name.includes('almond') || name.includes('almendra') || name.includes('walnut') || name.includes('nuez') || name.includes('pistacho') || name.includes('cashew') || name.includes('nuez de la india')) {
+  if (containsWord(name, ['peanut', 'maní', 'cacahuate', 'almond', 'almendra', 'walnut', 'nuez', 'pistacho', 'cashew', 'avellana', 'hazelnut'])) {
     allergens.push('Frutos secos')
   }
-  if (name.includes('fish') || name.includes('pescado') || name.includes('salmon') || name.includes('atún') || name.includes('tuna') || name.includes('salmón')) {
+  if (containsWord(name, ['fish', 'pescado', 'salmon', 'atún', 'tuna', 'salmón', 'merluza', 'bacalao'])) {
     allergens.push('Pescado')
   }
-  if (name.includes('shellfish') || name.includes('crustacean') || name.includes('mariscos') || name.includes('camarón') || name.includes('shrimp') || name.includes('langosta') || name.includes('ostra') || name.includes('oyster')) {
+  if (containsWord(name, ['shellfish', 'crustacean', 'mariscos', 'camarón', 'shrimp', 'langosta', 'ostra', 'mejillón', 'mussel'])) {
     allergens.push('Crustáceos')
   }
-  if (name.includes('sesame') || name.includes('sésamo')) {
+  if (containsWord(name, ['sesame', 'sésamo', 'ajonjolí'])) {
     allergens.push('Sésamo')
   }
 

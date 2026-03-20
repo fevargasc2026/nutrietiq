@@ -220,20 +220,29 @@ function translateToSpanish(englishName: string): string {
     'carrot': 'Zanahoria',
     'onion': 'Cebolla',
     'garlic': 'Ajo',
-    'tomato': 'Tomate',
-    'banana': 'Plátano',
-    'apple': 'Manzana',
-    'orange': 'Naranja',
-    'avocado': 'Palta',
-    'lettuce': 'Lechuga',
-    'spinach': 'Espinaca',
     'broccoli': 'Brócoli',
+    'tomatoes': 'Tomates',
+    'tomato': 'Tomate',
+    'canned': 'en conserva',
+    'raw': 'crudo',
+    'diced': 'en cubos',
+    'ripe': 'maduro',
+    'red': 'rojo',
+    'grape': 'grape (uvas)',
     'carrot,': 'Zanahoria,',
   }
 
-  for (const [eng, esp] of Object.entries(reverseMap)) {
+  // Ordenar por longitud de llave para reemplazar términos más específicos primero
+  const sortedEng = Object.keys(reverseMap).sort((a, b) => b.length - a.length)
+
+  for (const eng of sortedEng) {
     if (name.includes(eng)) {
-      return name.replace(eng, esp)
+      // Manejar plurales comunes en inglés
+      const esp = reverseMap[eng]
+      let replaced = name.replace(eng + 'es', esp + 's') // tomatoes -> tomates
+      if (replaced === name) replaced = name.replace(eng + 's', esp + 's') // apples -> manzanas
+      if (replaced === name) replaced = name.replace(eng, esp)
+      return replaced.charAt(0).toUpperCase() + replaced.slice(1)
     }
   }
   return englishName.charAt(0).toUpperCase() + englishName.slice(1)
@@ -252,8 +261,12 @@ export async function GET() {
     // Obtener nombres únicos y limpios de ambos campos
     const namesSet = new Set<string>()
     data.forEach(item => {
-      if (item.description_es) namesSet.add(item.description_es)
-      else if (item.description) namesSet.add(item.description)
+      if (item.description_es) {
+        namesSet.add(item.description_es)
+      } else if (item.description) {
+        // Traducir si solo tenemos el nombre en inglés
+        namesSet.add(translateToSpanish(item.description))
+      }
     })
 
     return NextResponse.json(Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'es')))

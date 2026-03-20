@@ -195,7 +195,7 @@ export function IngredientForm({
               {alergenosSource && (
                 <p className="text-[10px] text-muted-foreground mt-1 flex items-center">
                   <Sparkles className="h-3 w-3 mr-1 text-purple-500" />
-                  Fuente sugerida: <span className="font-semibold ml-1">{alergenosSource}</span>
+                  Fuente consulta: <span className="font-semibold ml-1">{alergenosSource}</span>
                 </p>
               )}
             </div>

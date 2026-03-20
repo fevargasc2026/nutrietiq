@@ -458,26 +458,26 @@ export async function POST(request: Request) {
 
     // Lógica de alérgenos
     let alergenos = food.alergenos || []
-    let origenAlergenos = 'Base de datos'
+    let origenAlergenos = 'Base de datos USDA'
     
     if (alergenos.length === 0) {
       if (esGeneradoIA) {
-        origenAlergenos = 'Generado por IA (DeepSeek)'
+        origenAlergenos = 'IA-Deepseek'
       } else {
         const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
         if (aiAlergenos && aiAlergenos.length > 0) {
           alergenos = aiAlergenos
-          origenAlergenos = 'Evaluado por IA (DeepSeek)'
+          origenAlergenos = 'IA-Deepseek'
           try {
             await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
           } catch (e) {}
         } else {
           alergenos = inferAllergens(food.description || englishSearch)
-          origenAlergenos = 'Análisis automático (Local)'
+          origenAlergenos = 'Análisis automático Nutrietiq'
         }
       }
     } else {
-      origenAlergenos = esGeneradoIA ? 'Generado por IA (Aprendido)' : 'Base de datos (Aprendido)'
+      origenAlergenos = esGeneradoIA ? 'IA-Deepseek (Aprendido)' : 'Base de datos USDA (Aprendido)'
     }
 
     const nombreSugeridoEs = food.description_es || translateToSpanish(food.description || englishSearch)

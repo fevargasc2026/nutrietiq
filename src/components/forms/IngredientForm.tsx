@@ -22,6 +22,7 @@ export function IngredientForm({
 
   const [nombre, setNombre] = useState(initialData?.nombre || "")
   const [alergenos, setAlergenos] = useState(initialData?.alergenos?.join(', ') || "")
+  const [alergenosSource, setAlergenosSource] = useState("")
   const [energia_kcal, setEnergia] = useState(initialData?.energia_kcal?.toString() || "0")
   const [proteina_g, setProteina] = useState(initialData?.proteina_g?.toString() || "0")
   const [grasa_total_g, setGrasa] = useState(initialData?.grasa_total_g?.toString() || "0")
@@ -44,6 +45,7 @@ export function IngredientForm({
     setLoadingUSDA(true)
     setErrorStr("")
     setUsdaMessage("")
+    setAlergenosSource("")
 
     try {
       const response = await fetch('/api/usda-search', {
@@ -84,6 +86,9 @@ export function IngredientForm({
       if (infoGeneral) {
         if (infoGeneral.alergenos_sugeridos) {
           setAlergenos(infoGeneral.alergenos_sugeridos)
+        }
+        if (infoGeneral.origen_alergenos) {
+          setAlergenosSource(infoGeneral.origen_alergenos)
         }
         // Solo actualizar nombre si el usuario lo desea o si el nombre sugerido es más preciso
         // Por ahora lo dejamos como está para no molestar al usuario
@@ -189,7 +194,13 @@ export function IngredientForm({
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium leading-none">Alérgenos (separados por coma)</label>
-              <input value={alergenos} onChange={e => setAlergenos(e.target.value)} type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej. Gluten, Leche, Soya" />
+              <input value={alergenos} onChange={e => {setAlergenos(e.target.value); setAlergenosSource("");}} type="text" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej. Gluten, Leche, Soya" />
+              {alergenosSource && (
+                <p className="text-[10px] text-muted-foreground mt-1 flex items-center">
+                  <Sparkles className="h-3 w-3 mr-1 text-purple-500" />
+                  Fuente sugerida: <span className="font-semibold ml-1">{alergenosSource}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>

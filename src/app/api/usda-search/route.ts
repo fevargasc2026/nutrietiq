@@ -385,12 +385,14 @@ export async function POST(request: Request) {
 
     // 6. Alérgenos inteligentes (DB -> AI -> Regex)
     let alergenos = food.alergenos || []
+    let origenAlergenos = 'Base de datos'
     
     // Si la DB no tiene alérgenos, intentamos con IA (DeepSeek)
     if (alergenos.length === 0) {
       const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
       if (aiAlergenos && aiAlergenos.length > 0) {
         alergenos = aiAlergenos
+        origenAlergenos = 'Inteligencia Artificial (DeepSeek)'
         
         // CACHING: Guardar el resultado de la IA en la DB para futuras consultas (silenciosamente)
         try {
@@ -404,7 +406,10 @@ export async function POST(request: Request) {
       } else {
         // Fallback final: Lógica de Regex local
         alergenos = inferAllergens(food.description || englishSearch)
+        origenAlergenos = 'Análisis automático (Local)'
       }
+    } else {
+      origenAlergenos = 'Base de datos (Aprendido)'
     }
 
     // 7. Nombre sugerido en español
@@ -416,6 +421,7 @@ export async function POST(request: Request) {
         nombre_sugerido_es: nombreSugeridoEs,
         nombre_original_usda: food.description || englishSearch,
         alergenos_sugeridos: alergenos.length > 0 ? alergenos.join(', ') : '',
+        origen_alergenos: origenAlergenos,
       },
       composicion_nutricional: {
         energia_kcal: energia,

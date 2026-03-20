@@ -12,6 +12,9 @@ export async function GET() {
   return NextResponse.json({
     message: "Debugging environment variables (Keys only)",
     present_keys: supabaseKeys,
-    timestamp: new Date().toISOString()
+    environment: process.env.NODE_ENV,
+    vercel_env: process.env.VERCEL_ENV || 'not-vercel',
+    timestamp: new Date().toISOString(),
+    tip: "If you don't see SUPABASE_SERVICE_ROLE_KEY, make sure it's added to Vercel Settings > Environment Variables and marked for all environments (Production, Preview, Development)."
   })
 }

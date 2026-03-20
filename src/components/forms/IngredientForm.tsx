@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, AlertTriangle, Sparkles, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -20,6 +20,7 @@ export function IngredientForm({
   const [errorStr, setErrorStr] = useState("")
   const [usdaMessage, setUsdaMessage] = useState("")
   const [systemMessage, setSystemMessage] = useState("")
+  const [availableIngredients, setAvailableIngredients] = useState<string[]>([])
 
   const [nombre, setNombre] = useState(initialData?.nombre || "")
   const [alergenos, setAlergenos] = useState(initialData?.alergenos?.join(', ') || "")
@@ -35,6 +36,21 @@ export function IngredientForm({
   const [unidad_medida_costo, setUnidad] = useState(initialData?.unidad_medida_costo || "kg")
   const [added_sugars, setAddedSugars] = useState(initialData?.added_sugars || false)
   const [added_saturated_fats, setAddedSatFats] = useState(initialData?.added_saturated_fats || false)
+
+  useEffect(() => {
+    const fetchAvailable = async () => {
+      try {
+        const res = await fetch('/api/usda-search')
+        if (res.ok) {
+          const names = await res.json()
+          setAvailableIngredients(names)
+        }
+      } catch (e) {
+        console.error('Error preload ingredients:', e)
+      }
+    }
+    fetchAvailable()
+  }, [])
 
   // Función para consultar USDA
   const handleUSDAQuery = async () => {
@@ -184,9 +200,15 @@ export function IngredientForm({
                   }}
                   type="text"
                   required
+                  list="ingredients-list"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   placeholder="Ej. Harina de Trigo"
                 />
+                <datalist id="ingredients-list">
+                  {availableIngredients.map((name, i) => (
+                    <option key={i} value={name} />
+                  ))}
+                </datalist>
                 <button
                   type="button"
                   onClick={handleUSDAQuery}

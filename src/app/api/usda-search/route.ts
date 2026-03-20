@@ -239,6 +239,30 @@ function translateToSpanish(englishName: string): string {
   return englishName.charAt(0).toUpperCase() + englishName.slice(1)
 }
 
+export async function GET() {
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data, error } = await supabase
+      .from('usda_alimentos')
+      .select('description_es, description')
+      .order('description_es', { ascending: true })
+
+    if (error) throw error
+
+    // Obtener nombres únicos y limpios de ambos campos
+    const namesSet = new Set<string>()
+    data.forEach(item => {
+      if (item.description_es) namesSet.add(item.description_es)
+      else if (item.description) namesSet.add(item.description)
+    })
+
+    return NextResponse.json(Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'es')))
+  } catch (error) {
+    console.error('Error fetching ingredients list:', error)
+    return NextResponse.json({ error: 'Error al obtener lista de ingredientes' }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request) {
   try {
     let supabase = await createSupabaseServerClient()

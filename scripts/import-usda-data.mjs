@@ -1,24 +1,8 @@
 /**
  * Script para importar datos de USDA FoodData Central a Supabase
  *
- * Instrucciones:
- * 1. Descargar datos de https://fdc.nal.usda.gov/data-guide.html
- *    - Descargar "Foundation Foods" en formato CSV
- * 2. Colocar el archivo CSV en la raíz del proyecto (ej: usda_foundation_foods.csv)
- * 3. Ejecutar: node scripts/import-usda-data.mjs
- *
- * El script espera un CSV con las columnas:
- * - fdcId
- * - description
- * - dataType
- * - energy (kcal)
- * - protein
- * - total lipid (fat)
- * - fatty acids, total saturated
- * - carbohydrate
- * - fiber
- * - sugars, total
- * - sodium
+ * Este script procesa los archivos CSV de USDA y los importa a Supabase.
+ * Los datos ya deben estar descargados en FoodData_Central_foundation_food_csv_2025-12-18/
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -27,6 +11,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const USDA_DIR = path.join(__dirname, '..', 'FoodData_Central_foundation_food_csv_2025-12-18')
 
 // Configuración de Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xxxxx.supabase.co'
@@ -39,105 +24,46 @@ if (!supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-// Mapeo de columnas CSV a columnas de la tabla
-const COLUMN_MAP = {
-  'fdcId': 'fdc_id',
-  'description': 'description',
-  'dataType': 'data_type',
-  'energy (kcal)': 'energia_kcal',
-  'protein': 'proteina_g',
-  'total lipid (fat)': 'grasa_total_g',
-  'fatty acids, total saturated': 'grasa_saturada_g',
-  'carbohydrate': 'carbohidratos_g',
-  'fiber': 'fibra_g',
-  'sugars, total': 'azucares_g',
-  'sodium': 'sodio_mg'
+// IDs de nutrientes USDA que nos interesan
+const NUTRIENT_IDS = {
+  energia: [1008, 208],       // Energy, kcal
+  proteina: 1003,             // Protein
+  grasaTotal: 1004,           // Total lipid (fat)
+  grasaSaturada: 1258,        // Fatty acids, total saturated
+  carbohidratos: 1005,       // Carbohydrate, by difference
+  fibra: 1079,                // Fiber, total dietary
+  azucares: 2000,             // Sugars, total
+  sodio: 1093                 // Sodium, Na
 }
 
-// Traducciones básicas español-inglés para description_es
+// Traducciones básicas español-inglés
 const basicTranslations = {
-  'wheat': 'trigo',
-  'flour': 'harina',
-  'sugar': 'azúcar',
-  'milk': 'leche',
-  'cheese': 'queso',
-  'butter': 'mantequilla',
-  'egg': 'huevo',
-  'chicken': 'pollo',
-  'beef': 'carne',
-  'pork': 'cerdo',
-  'fish': 'pescado',
-  'rice': 'arroz',
-  'pasta': 'pasta',
-  'bread': 'pan',
-  'salt': 'sal',
-  'oil': 'aceite',
-  'olive': 'oliva',
-  'vegetable': 'vegetal',
-  'honey': 'miel',
-  'cocoa': 'cacao',
-  'chocolate': 'chocolate',
-  'oats': 'avena',
-  'corn': 'maíz',
-  'potato': 'papa',
-  'carrot': 'zanahoria',
-  'onion': 'cebolla',
-  'garlic': 'ajo',
-  'tomato': 'tomate',
-  'apple': 'manzana',
-  'banana': 'plátano',
-  'orange': 'naranja',
-  'avocado': 'palta',
-  'lettuce': 'lechuga',
-  'spinach': 'espinaca',
-  'broccoli': 'brócoli',
-  'pepper': 'pimiento',
-  'mushroom': 'champiñón',
-  'garbanzo': 'garbanzo',
-  'lenteja': 'lenteja',
-  'quinoa': 'quinoa',
-  'almond': 'almendra',
-  'walnut': 'nuez',
-  'peanut': 'maní',
-  'yogurt': 'yogur',
-  'cream': 'crema',
-  'soy': 'soya'
+  'wheat': 'trigo', 'flour': 'harina', 'sugar': 'azúcar', 'milk': 'leche',
+  'cheese': 'queso', 'butter': 'mantequilla', 'egg': 'huevo', 'chicken': 'pollo',
+  'beef': 'carne', 'pork': 'cerdo', 'fish': 'pescado', 'rice': 'arroz',
+  'pasta': 'pasta', 'bread': 'pan', 'salt': 'sal', 'oil': 'aceite',
+  'olive': 'oliva', 'vegetable': 'vegetal', 'honey': 'miel', 'cocoa': 'cacao',
+  'chocolate': 'chocolate', 'oats': 'avena', 'corn': 'maíz', 'potato': 'papa',
+  'carrot': 'zanahoria', 'onion': 'cebolla', 'garlic': 'ajo', 'tomato': 'tomate',
+  'apple': 'manzana', 'banana': 'plátano', 'orange': 'naranja', 'avocado': 'palta',
+  'lettuce': 'lechuga', 'spinach': 'espinaca', 'broccoli': 'brócoli',
+  'pepper': 'pimiento', 'mushroom': 'champiñón', 'chickpea': 'garbanzo',
+  'lentil': 'lenteja', 'quinoa': 'quinoa', 'almond': 'almendra', 'walnut': 'nuez',
+  'peanut': 'maní', 'yogurt': 'yogur', 'cream': 'crema', 'soy': 'soya',
+  'garbanzo': 'garbanzo', 'lenteja': 'lenteja', 'frijol': 'frijol'
 }
 
 function translateToSpanish(description) {
+  if (!description) return null
   let es = description.toLowerCase()
   for (const [eng, esp] of Object.entries(basicTranslations)) {
     es = es.replace(new RegExp(eng, 'gi'), esp)
   }
-  // Capitalizar primera letra
   return es.charAt(0).toUpperCase() + es.slice(1)
 }
 
-function parseCSV(content) {
-  const lines = content.split('\n').filter(line => line.trim())
-  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
-
-  const rows = []
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',')
-    const row = {}
-    headers.forEach((header, index) => {
-      let value = values[index]?.replace(/"/g, '').trim() || ''
-      // Convertir a número si es un campo numérico
-      const mappedCol = COLUMN_MAP[header]
-      if (mappedCol && ['energia_kcal', 'proteina_g', 'grasa_total_g', 'grasa_saturada_g', 'carbohidratos_g', 'fibra_g', 'azucares_g', 'sodio_mg'].includes(mappedCol)) {
-        value = parseFloat(value) || 0
-      }
-      row[mappedCol || header] = value
-    })
-    if (row.fdc_id) {
-      rows.push(row)
-    }
-  }
-  return rows
-}
-
 function inferAllergens(description) {
+  if (!description) return []
   const name = description.toLowerCase()
   const allergens = []
 
@@ -163,66 +89,151 @@ function inferAllergens(description) {
   return allergens
 }
 
-async function importData() {
-  const csvFile = path.join(__dirname, '..', 'usda_foundation_foods.csv')
+function parseCSV(filepath) {
+  const content = fs.readFileSync(filepath, 'utf-8')
+  const lines = content.split('\n').filter(line => line.trim())
 
-  if (!fs.existsSync(csvFile)) {
-    console.error(`Error: No se encontró el archivo ${csvFile}`)
-    console.log('Instrucciones:')
-    console.log('1. Ir a https://fdc.nal.usda.gov/data-guide.html')
-    console.log('2. Descargar "Foundation Foods" en formato CSV')
-    console.log('3. Guardar como usda_foundation_foods.csv en la raíz del proyecto')
-    console.log('4. Ejecutar: node scripts/import-usda-data.mjs')
+  // Parse headers
+  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+
+  const rows = []
+  for (let i = 1; i < lines.length; i++) {
+    // Handle CSV with quoted fields
+    const values = []
+    let current = ''
+    let inQuotes = false
+
+    for (const char of lines[i]) {
+      if (char === '"') {
+        inQuotes = !inQuotes
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.replace(/"/g, '').trim())
+        current = ''
+      } else {
+        current += char
+      }
+    }
+    values.push(current.replace(/"/g, '').trim())
+
+    const row = {}
+    headers.forEach((header, index) => {
+      row[header] = values[index] || ''
+    })
+    rows.push(row)
+  }
+  return rows
+}
+
+async function importData() {
+  console.log('Cargando archivos CSV de USDA...')
+
+  if (!fs.existsSync(path.join(USDA_DIR, 'food.csv'))) {
+    console.error(`Error: No se encontró el directorio ${USDA_DIR}`)
+    console.log('Por favor descarga los datos de USDA primero.')
     process.exit(1)
   }
 
-  console.log('Leyendo archivo CSV...')
-  const content = fs.readFileSync(csvFile, 'utf-8')
-  const foods = parseCSV(content)
+  // Cargar datos
+  const foods = parseCSV(path.join(USDA_DIR, 'food.csv'))
+  const nutrients = parseCSV(path.join(USDA_DIR, 'nutrient.csv'))
+  const foodNutrients = parseCSV(path.join(USDA_DIR, 'food_nutrient.csv'))
 
-  console.log(`Procesando ${foods.length} alimentos...`)
+  console.log(`- ${foods.length} alimentos`)
+  console.log(`- ${nutrients.length} nutrientes`)
+  console.log(`- ${foodNutrients.length} registros de nutrientes`)
 
-  // Procesar en lotes
-  const batchSize = 100
-  let imported = 0
-  let errors = 0
+  // Crear mapa de nutrientes por ID
+  const nutrientMap = {}
+  nutrients.forEach(n => {
+    nutrientMap[n.id] = n.name
+  })
 
-  for (let i = 0; i < foods.length; i += batchSize) {
-    const batch = foods.slice(i, i + batchSize).map(food => ({
-      fdc_id: food.fdc_id,
+  // Agrupar nutrientes por fdc_id
+  const nutrientsByFood = {}
+  foodNutrients.forEach(fn => {
+    if (!nutrientsByFood[fn.fdc_id]) {
+      nutrientsByFood[fn.fdc_id] = {}
+    }
+    const nutrientId = parseInt(fn.nutrient_id)
+    const amount = parseFloat(fn.amount) || 0
+    nutrientsByFood[fn.fdc_id][nutrientId] = amount
+  })
+
+  // Mapear IDs de energía
+  const energiaIds = [1008, 208, 957, 958]
+
+  // Procesar alimentos
+  console.log('Procesando alimentos...')
+  const processedFoods = foods.map(food => {
+    const fdcId = parseInt(food.fdc_id)
+    const foodNutrientsMap = nutrientsByFood[fdcId] || {}
+
+    // Buscar energía
+    let energia = 0
+    for (const id of energiaIds) {
+      if (foodNutrientsMap[id]) {
+        energia = foodNutrientsMap[id]
+        break
+      }
+    }
+
+    return {
+      fdc_id: fdcId,
       description: food.description,
       description_es: translateToSpanish(food.description),
       data_type: food.data_type,
       category: 'Foundation',
-      energia_kcal: food.energia_kcal || 0,
-      proteina_g: food.proteina_g || 0,
-      grasa_total_g: food.grasa_total_g || 0,
-      grasa_saturada_g: food.grasa_saturada_g || 0,
-      carbohidratos_g: food.carbohidratos_g || 0,
-      fibra_g: food.fibra_g || 0,
-      azucares_g: food.azucares_g || 0,
-      sodio_mg: food.sodio_mg || 0,
+      energia_kcal: energia,
+      proteina_g: foodNutrientsMap[1003] || 0,
+      grasa_total_g: foodNutrientsMap[1004] || 0,
+      grasa_saturada_g: foodNutrientsMap[1258] || 0,
+      carbohidratos_g: foodNutrientsMap[1005] || 0,
+      fibra_g: foodNutrientsMap[1079] || 0,
+      azucares_g: foodNutrientsMap[2000] || 0,
+      sodio_mg: foodNutrientsMap[1093] || 0,
       alergenos: inferAllergens(food.description)
-    }))
+    }
+  }).filter(f => f.energia_kcal > 0) // Solo alimentos con energía
+
+  console.log(`- ${processedFoods.length} alimentos con datos nutricionales`)
+
+  // Importar en lotes
+  const batchSize = 100
+  let imported = 0
+  let errors = 0
+
+  console.log('Importando a Supabase...')
+
+  for (let i = 0; i < processedFoods.length; i += batchSize) {
+    const batch = processedFoods.slice(i, i + batchSize)
 
     const { error } = await supabase
       .from('usda_alimentos')
       .upsert(batch, { onConflict: 'fdc_id' })
 
     if (error) {
-      console.error('Error en lote:', error.message)
+      console.error(`Error en lote ${i/batchSize + 1}:`, error.message)
       errors += batch.length
     } else {
       imported += batch.length
     }
 
-    console.log(`Procesados: ${Math.min(i + batchSize, foods.length)}/${foods.length}`)
+    if ((i + batchSize) % 500 === 0 || i + batchSize >= processedFoods.length) {
+      console.log(`Procesados: ${Math.min(i + batchSize, processedFoods.length)}/${processedFoods.length}`)
+    }
   }
 
   console.log(`\nImportación completada: ${imported} alimentos`)
   if (errors > 0) {
     console.log(`Errores: ${errors}`)
   }
+
+  // Verificar
+  const { count } = await supabase
+    .from('usda_alimentos')
+    .select('*', { count: 'exact', head: true })
+
+  console.log(`Total en base de datos: ${count}`)
 }
 
 importData().catch(console.error)

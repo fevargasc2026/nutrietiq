@@ -251,11 +251,37 @@ export async function POST(request: Request) {
     const englishSearch = translateToEnglish(ingredientName)
 
     // 2. Buscar en Supabase (tabla usda_alimentos)
-    const { data: foods, error } = await supabase
+    // Intentamos búsqueda por texto completo primero en español, luego en inglés
+    let { data: foods, error } = await supabase
       .from('usda_alimentos')
       .select('*')
-      .or(`description.ilike.%${englishSearch}%,description_es.ilike.%${ingredientName}%`)
-      .limit(10)
+      .textSearch('description_es', ingredientName, { 
+        config: 'spanish',
+        type: 'phrase'
+      })
+      .limit(5)
+
+    // Si no hay resultados exactos en español, probamos búsqueda amplia en español
+    if (!foods || foods.length === 0) {
+      const { data: foodsWide } = await supabase
+        .from('usda_alimentos')
+        .select('*')
+        .textSearch('description_es', ingredientName.split(' ').join(' & '), { 
+          config: 'spanish'
+        })
+        .limit(5)
+      foods = foodsWide
+    }
+
+    // Si sigue sin haber resultados, probamos en inglés con la traducción
+    if (!foods || foods.length === 0) {
+      const { data: foodsEng } = await supabase
+        .from('usda_alimentos')
+        .select('*')
+        .or(`description.ilike.%${englishSearch}%,description_es.ilike.%${ingredientName}%`)
+        .limit(5)
+      foods = foodsEng
+    }
 
     if (error) {
       console.error('Error consultando Supabase:', error)
@@ -264,7 +290,7 @@ export async function POST(request: Request) {
 
     if (!foods || foods.length === 0) {
       return NextResponse.json(
-        { error: `No se encontró información nutricional para "${ingredientName}"` },
+        { error: `No se encontró información nutricional para "${ingredientName}" en la base de datos local.` },
         { status: 404 }
       )
     }

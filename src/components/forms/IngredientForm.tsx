@@ -55,6 +55,9 @@ export function IngredientForm({
       const data = await response.json()
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`No se encontró "${nombre}" en la base de datos de referencia (USDA).`)
+        }
         throw new Error(data.error || 'Error al consultar USDA')
       }
 
@@ -75,21 +78,20 @@ export function IngredientForm({
         setAddedSatFats(data.parametros_ley.grasas_saturadas_añadidas || false)
       }
 
-      if (data.informacion_general) {
-        if (data.informacion_general.alergenos_sugeridos) {
-          setAlergenos(data.informacion_general.alergenos_sugeridos)
+      const infoGeneral = data.informacion_general
+      if (infoGeneral) {
+        if (infoGeneral.alergenos_sugeridos) {
+          setAlergenos(infoGeneral.alergenos_sugeridos)
         }
-        // Solo actualizar nombre si está vacío o si el usuario quiere
-        if (!nombre && data.informacion_general.nombre_sugerido_es) {
-          setNombre(data.informacion_general.nombre_sugerido_es)
-        }
+        // Solo actualizar nombre si el usuario lo desea o si el nombre sugerido es más preciso
+        // Por ahora lo dejamos como está para no molestar al usuario
       }
 
-      setUsdaMessage(data.informacion_general?.nombre_original_usda
-        ? `Datos cargados desde USDA: ${data.informacion_general.nombre_original_usda}`
-        : 'Datos nutricionales cargados correctamente')
+      setUsdaMessage(infoGeneral?.nombre_original_usda
+        ? `Datos cargados desde referencia: ${infoGeneral.nombre_original_usda}`
+        : 'Datos nutricionales cargados correctamente desde la base local')
     } catch (err: any) {
-      setErrorStr(err.message || 'Error al consultar la base de datos USDA')
+      setErrorStr(err.message || 'Error al consultar la base de datos local')
     } finally {
       setLoadingUSDA(false)
     }

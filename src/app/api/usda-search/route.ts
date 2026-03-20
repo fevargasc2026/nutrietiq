@@ -404,7 +404,7 @@ export async function POST(request: Request) {
         
         // CACHING: Insertar el nuevo alimento generado en la DB para el futuro
         try {
-          const { data: insertedFood } = await supabase
+          const { data: insertedFood, error: insertError } = await supabase
             .from('usda_alimentos')
             .insert({
               ...aiGeneratedFood,
@@ -414,11 +414,13 @@ export async function POST(request: Request) {
             .select()
             .single()
           
-          if (insertedFood) {
+          if (insertError) {
+            console.error('Error inserting AI generated food:', insertError)
+          } else if (insertedFood) {
             food = insertedFood
           }
         } catch (e) {
-          console.error('Error caching AI generated food:', e)
+          console.error('Exception caching AI generated food:', e)
         }
       } else {
         reasonAI = reason || ''
@@ -469,8 +471,17 @@ export async function POST(request: Request) {
           alergenos = aiAlergenos
           origenAlergenos = 'IA-Deepseek'
           try {
-            await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
-          } catch (e) {}
+            const { error: updateError } = await supabase
+              .from('usda_alimentos')
+              .update({ alergenos: aiAlergenos })
+              .eq('id', food.id)
+            
+            if (updateError) {
+              console.error('Error updating allergens cache:', updateError)
+            }
+          } catch (e) {
+            console.error('Exception updating allergens cache:', e)
+          }
         } else {
           alergenos = inferAllergens(food.description || englishSearch)
           origenAlergenos = 'Análisis automático Nutrietiq'

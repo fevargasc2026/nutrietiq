@@ -40,7 +40,8 @@ export function IngredientForm({
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
-        const res = await fetch('/api/usda-search')
+        // Añadir timestamp para evitar caché de versiones previas
+        const res = await fetch(`/api/usda-search?t=${Date.now()}`)
         if (res.ok) {
           const names = await res.json()
           setAvailableIngredients(names)

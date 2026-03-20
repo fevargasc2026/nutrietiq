@@ -269,7 +269,14 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'es')))
+    return NextResponse.json(
+      Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'es')),
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0'
+        }
+      }
+    )
   } catch (error) {
     console.error('Error fetching ingredients list:', error)
     return NextResponse.json({ error: 'Error al obtener lista de ingredientes' }, { status: 500 })

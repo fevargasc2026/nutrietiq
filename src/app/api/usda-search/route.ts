@@ -216,9 +216,12 @@ async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> 
 }
 
 // Generación COMPLETA de alimento por IA (Modo generativo / Fallback 404)
-async function generateAIFoodSuggestion(ingredientName: string): Promise<any | null> {
+async function generateAIFoodSuggestion(ingredientName: string): Promise<{ data: any | null, reason?: string }> {
   const apiKey = process.env.DEEPSEEK_API_KEY
-  if (!apiKey) return null
+  if (!apiKey) {
+    console.error('DEEPSEEK_API_KEY is missing')
+    return { data: null, reason: 'AI_KEY_MISSING' }
+  }
 
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -258,12 +261,18 @@ async function generateAIFoodSuggestion(ingredientName: string): Promise<any | n
       })
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('DeepSeek API error:', response.status, errorText)
+      return { data: null, reason: `AI_API_ERROR_${response.status}` }
+    }
+
     const data = await response.json()
-    return JSON.parse(data.choices[0].message.content)
+    const result = JSON.parse(data.choices[0].message.content)
+    return { data: result }
   } catch (error) {
     console.error('Error calling DeepSeek API (Generation):', error)
-    return null
+    return { data: null, reason: 'AI_EXCEPTION' }
   }
 }
 
@@ -384,10 +393,11 @@ export async function POST(request: Request) {
 
     let food: any = null
     let esGeneradoIA = false
+    let reasonAI = ''
 
     // FALLBACK A IA SI NO SE ENCONTRÓ EN LA DB
     if (!foods || foods.length === 0) {
-      const aiGeneratedFood = await generateAIFoodSuggestion(ingredientName)
+      const { data: aiGeneratedFood, reason } = await generateAIFoodSuggestion(ingredientName)
       if (aiGeneratedFood) {
         food = aiGeneratedFood
         esGeneradoIA = true
@@ -410,14 +420,21 @@ export async function POST(request: Request) {
         } catch (e) {
           console.error('Error caching AI generated food:', e)
         }
+      } else {
+        reasonAI = reason || ''
       }
     } else {
       food = foods[0]
     }
 
     if (!food) {
+      let errorMessage = `No se encontró información para "${ingredientName}".`
+      if (reasonAI === 'AI_KEY_MISSING') errorMessage += ' (La clave de IA DeepSeek no está configurada en el servidor)'
+      else if (reasonAI.startsWith('AI_API_ERROR')) errorMessage += ` (Error de servicio IA: ${reasonAI.split('_').pop()})`
+      else if (reasonAI === 'AI_EXCEPTION') errorMessage += ' (Error técnico al conectar con la IA)'
+      
       return NextResponse.json(
-        { error: `No se encontró información para "${ingredientName}" ni fue posible generarla con IA.` },
+        { error: errorMessage },
         { status: 404 }
       )
     }

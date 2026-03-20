@@ -59,9 +59,6 @@ export function IngredientForm({
       const data = await response.json()
 
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`No se encontró "${nombre}" en la base de datos de referencia (USDA).`)
-        }
         throw new Error(data.error || 'Error al consultar USDA')
       }
 

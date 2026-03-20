@@ -399,28 +399,45 @@ export async function POST(request: Request) {
     if (!foods || foods.length === 0) {
       const { data: aiGeneratedFood, reason } = await generateAIFoodSuggestion(ingredientName)
       if (aiGeneratedFood) {
-        food = aiGeneratedFood
+        // Limpiar objeto para asegurar que solo enviamos campos existentes en la DB
+        const cleanFood = {
+          description: aiGeneratedFood.description || englishSearch,
+          description_es: aiGeneratedFood.description_es || ingredientName,
+          energia_kcal: Number(aiGeneratedFood.energia_kcal) || 0,
+          proteina_g: Number(aiGeneratedFood.proteina_g) || 0,
+          grasa_total_g: Number(aiGeneratedFood.grasa_total_g) || 0,
+          grasa_saturada_g: Number(aiGeneratedFood.grasa_saturada_g) || 0,
+          carbohidratos_g: Number(aiGeneratedFood.carbohidratos_g) || 0,
+          fibra_g: Number(aiGeneratedFood.fibra_g) || 0,
+          azucares_g: Number(aiGeneratedFood.azucares_g) || 0,
+          sodio_mg: Number(aiGeneratedFood.sodio_mg) || 0,
+          alergenos: Array.isArray(aiGeneratedFood.alergenos) ? aiGeneratedFood.alergenos : [],
+          data_type: 'AI_GENERATED',
+          fdc_id: Math.floor(Date.now() / 1000) // Usar timestamp para evitar colisiones
+        }
+
+        food = cleanFood
         esGeneradoIA = true
         
         // CACHING: Insertar el nuevo alimento generado en la DB para el futuro
         try {
           const { data: insertedFood, error: insertError } = await supabase
             .from('usda_alimentos')
-            .insert({
-              ...aiGeneratedFood,
-              data_type: 'AI_GENERATED',
-              fdc_id: Math.floor(Math.random() * 1000000) // ID ficticio para mantener esquema
-            })
+            .insert(cleanFood)
             .select()
             .single()
           
           if (insertError) {
-            console.error('Error inserting AI generated food:', insertError)
+            console.error('Error saving AI generated food to DB:', insertError)
+            // Agregamos el error detallado a la respuesta para depuración (solo en desarrollo o temporalmente)
+            reasonAI = `DB_SAVE_ERROR: ${insertError.message}`
           } else if (insertedFood) {
             food = insertedFood
+            console.log('AI food cached successfully:', food.id)
           }
         } catch (e) {
-          console.error('Exception caching AI generated food:', e)
+          console.error('Exception during AI food caching:', e)
+          reasonAI = 'DB_EXCEPTION'
         }
       } else {
         reasonAI = reason || ''

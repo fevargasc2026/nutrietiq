@@ -430,6 +430,7 @@ export async function POST(request: Request) {
     if (!food) {
       let errorMessage = `No se encontró información para "${ingredientName}".`
       if (reasonAI === 'AI_KEY_MISSING') errorMessage += ' (La clave de IA DeepSeek no está configurada en el servidor)'
+      else if (reasonAI === 'AI_API_ERROR_402') errorMessage += ' (Actualizar créditos de uso en DeepSeek)'
       else if (reasonAI.startsWith('AI_API_ERROR')) errorMessage += ` (Error de servicio IA: ${reasonAI.split('_').pop()})`
       else if (reasonAI === 'AI_EXCEPTION') errorMessage += ' (Error técnico al conectar con la IA)'
       

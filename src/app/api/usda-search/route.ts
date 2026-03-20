@@ -4,181 +4,81 @@ import { createClient } from '@supabase/supabase-js'
 
 // Diccionario de traducción español -> inglés técnico USDA
 const translationMap: Record<string, string> = {
-  'harina de trigo': 'wheat flour white all purpose',
-  'harina': 'wheat flour',
+  'harina de trigo': 'wheat flour',
   'azúcar': 'sugar',
-  'azúcar blanca': 'sugar white',
-  'azúcar rubia': 'brown sugar',
-  'miel': 'honey',
   'sal': 'salt',
   'aceite de oliva': 'olive oil',
-  'aceite vegetal': 'vegetable oil',
-  'aceite': 'oil',
   'mantequilla': 'butter',
-  'margarina': 'margarine',
   'leche': 'milk',
-  'leche entera': 'milk whole',
-  'leche descremada': 'milk skim',
-  'crema': 'cream',
   'queso': 'cheese',
-  'queso cheddar': 'cheese cheddar',
-  'queso mozzarella': 'cheese mozzarella',
   'huevo': 'egg',
-  'huevos': 'egg',
   'pollo': 'chicken',
-  'carne': 'meat',
-  'carne molida': 'ground beef',
+  'carne de res': 'beef',
   'cerdo': 'pork',
-  'tocino': 'bacon',
-  'jamón': 'ham',
   'pescado': 'fish',
-  'salmon': 'salmon',
-  'atún': 'tuna',
   'arroz': 'rice',
-  'arroz blanco': 'rice white',
   'pasta': 'pasta',
-  'fideos': 'pasta',
   'pan': 'bread',
-  'pan blanco': 'bread white',
-  'levadura': 'yeast',
-  'polvo de hornear': 'baking powder',
-  'bicarbonato': 'baking soda',
   'vainilla': 'vanilla',
-  'canela': 'cinnamon',
   'cacao': 'cocoa',
   'chocolate': 'chocolate',
-  'chocolate negro': 'chocolate dark',
-  'nuez': 'walnut',
   'almendra': 'almond',
-  'maní': 'peanut',
   'avena': 'oats',
   'maíz': 'corn',
-  'trigo': 'wheat',
-  'cebada': 'barley',
+  'papa': 'potato',
   'zanahoria': 'carrot',
   'cebolla': 'onion',
   'ajo': 'garlic',
   'tomate': 'tomato',
-  'papa': 'potato',
-  'papa blanca': 'potato white',
-  'camote': 'sweet potato',
-  'platano': 'banano',
+  'plátano': 'banana',
   'manzana': 'apple',
   'naranja': 'orange',
-  'limón': 'lemon',
-  'uva': 'grape',
-  'fresa': 'strawberry',
   'palta': 'avocado',
-  'aguacate': 'avocado',
   'lechuga': 'lettuce',
-  'espárrago': 'asparagus',
-  'brócoli': 'broccoli',
   'espinaca': 'spinach',
-  'ají': 'pepper',
-  'pimiento': 'pepper',
-  'pimentón': 'pepper',
-  'champiñón': 'mushroom',
-  'hongos': 'mushroom',
-  'salsa de tomate': 'tomato sauce',
-  'ketchup': 'ketchup',
-  'mostaza': 'mustard',
-  'mayonesa': 'mayonnaise',
-  'vinagre': 'vinegar',
-  'salsa de soja': 'soy sauce',
-  'salsa bbq': 'barbecue sauce',
-  'salsa': 'sauce',
-  'consomé': 'broth',
-  'caldo': 'broth',
-  'concentrado de pollo': 'chicken broth',
-  'gelatina': 'gelatin',
-  'almidón': 'starch',
-  'almidón de maíz': 'corn starch',
-  'maicena': 'corn starch',
-  'fibra': 'fiber',
-  'proteína': 'protein',
-  'suero de leche': 'whey protein',
-  'leche en polvo': 'milk powder',
-  'leche condensada': 'condensed milk',
-  'crema de leche': 'heavy cream',
-  'yogur': 'yogurt',
-  'yogur natural': 'yogurt plain',
-  'nata': 'heavy cream',
-  'ricota': 'ricotta cheese',
-  'cottage cheese': 'cottage cheese',
-  'parmesano': 'parmesan cheese',
-  'requesón': 'cottage cheese',
-  'sémola': 'semolina',
-  'grits': 'corn grits',
-  'quinoa': 'quinoa',
-  'lentajas': 'lentils',
-  'lentejas': 'lentils',
-  'garbanzos': 'chickpeas',
-  'porotos': 'beans',
-  'frijoles': 'beans',
-  'poroto negro': 'black beans',
-  'poroto rojo': 'red kidney beans',
-  'soya': 'soy',
-  'soya texturizada': 'textured vegetable protein',
-  'tvp': 'textured vegetable protein',
+  'brócoli': 'broccoli',
+  'seitán': 'seitan',
+  'seitan': 'seitan'
 }
 
-// Traducir de español a inglés
-function translateToEnglish(spanishName: string): string {
-  const normalized = spanishName.toLowerCase().trim()
-  if (translationMap[normalized]) {
-    return translationMap[normalized]
-  }
+// Función para traducir el nombre a inglés para mejor búsqueda en USDA
+function translateToEnglish(name: string): string {
+  const lowerName = name.toLowerCase()
   for (const [esp, eng] of Object.entries(translationMap)) {
-    if (normalized.includes(esp)) {
-      return normalized.replace(esp, eng)
+    if (lowerName.includes(esp)) {
+      return eng
     }
   }
-  return spanishName.toLowerCase().trim()
+  return name
 }
 
-// Helper para buscar palabras completas
-const containsWord = (text: string, words: string[]) => {
-  return words.some(word => {
-    const regex = new RegExp(`\\b${word}\\b`, 'i')
-    return regex.test(text)
-  })
-}
-
-// Inferir alérgenos basados en el nombre del ingrediente (Lógica local / Fallback)
-function inferAllergens(ingredientName: string): string[] {
-  const name = ingredientName.toLowerCase()
+// Inferencia de alérgenos por palabras clave (Regex robusto)
+function inferAllergens(description: string): string[] {
+  const desc = description.toLowerCase()
   const allergens: string[] = []
 
-  if (containsWord(name, ['wheat', 'flour', 'trigo', 'harina', 'pan', 'pasta', 'cebada', 'avena', 'couscous', 'centeno', 'rye'])) {
-    allergens.push('Gluten')
-  }
-  if (containsWord(name, ['milk', 'leche', 'cheese', 'queso', 'butter', 'mantequilla', 'yogur', 'cream', 'crema', 'lactosa', 'suero', 'whey', 'caseina'])) {
-    allergens.push('Lácteos')
-  }
-  if (containsWord(name, ['egg', 'huevo', 'mayonnaise', 'mayonesa', 'albúmina'])) {
-    allergens.push('Huevos')
-  }
-  if (containsWord(name, ['soy', 'soya', 'soja', 'lecytina', 'lecithin'])) {
-    allergens.push('Soya')
-  }
-  if (containsWord(name, ['peanut', 'maní', 'cacahuate', 'almond', 'almendra', 'walnut', 'nuez', 'pistacho', 'cashew', 'avellana', 'hazelnut'])) {
-    allergens.push('Frutos secos')
-  }
-  if (containsWord(name, ['fish', 'pescado', 'salmon', 'atún', 'tuna', 'salmón', 'merluza', 'bacalao'])) {
-    allergens.push('Pescado')
-  }
-  if (containsWord(name, ['shellfish', 'crustacean', 'mariscos', 'camarón', 'shrimp', 'langosta', 'ostra', 'mejillón', 'mussel'])) {
-    allergens.push('Crustáceos')
-  }
-  if (containsWord(name, ['sesame', 'sésamo', 'ajonjolí'])) {
-    allergens.push('Sésamo')
-  }
+  const rules = [
+    { key: 'Gluten', patterns: [/\bwheat\b/, /\bflour\b/, /\bbarley\b/, /\brye\b/, /\btrigo\b/, /\bharina\b/, /\bcebada\b/, /\bcenteno\b/, /\bseitan\b/, /\bseitán\b/] },
+    { key: 'Lácteos', patterns: [/\bmilk\b/, /\bcheese\b/, /\bbutter\b/, /\byogurt\b/, /\blactose\b/, /\bleche\b/, /\bqueso\b/, /\bmantequilla\b/, /\byogur\b/, /\blactosa\b/] },
+    { key: 'Huevos', patterns: [/\begg\b/, /\balbumin\b/, /\bhuevo\b/, /\balbumina\b/] },
+    { key: 'Soya', patterns: [/\bsoy\b/, /\bsoya\b/, /\blecithin\b/] },
+    { key: 'Frutos secos', patterns: [/\bnut\b/, /\balmond\b/, /\bwalnut\b/, /\bcashew\b/, /\bpistachio\b/, /\bpeanut\b/, /\bnuez\b/, /\balmendra\b/, /\bcastaña\b/, /\bmaní\b/] },
+    { key: 'Pescado', patterns: [/\bfish\b/, /\bsalmon\b/, /\btuna\b/, /\bcod\b/, /\bpescado\b/, /\bsalmón\b/, /\batún\b/] },
+    { key: 'Crustáceos', patterns: [/\bshrimp\b/, /\bcrab\b/, /\blobster\b/, /\bprawn\b/, /\bcamarón\b/, /\bcangrejo\b/, /\blagosta\b/] },
+    { key: 'Sésamo', patterns: [/\bsesame\b/, /\bsésamo\b/, /\btahini\b/] }
+  ]
+
+  rules.forEach(rule => {
+    if (rule.patterns.some(pattern => pattern.test(desc))) {
+      allergens.push(rule.key)
+    }
+  })
 
   return allergens
 }
 
-// Llamada a DeepSeek AI para evaluación inteligente de alérgenos (Modo experto)
-async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> {
+// Generación de alérgenos por IA (DeepSeek)
+async function callDeepSeekAI(description: string): Promise<string[] | null> {
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) return null
 
@@ -194,11 +94,11 @@ async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> 
         messages: [
           {
             role: "system",
-            content: "Eres un experto en seguridad alimentaria. Identifica alérgenos de esta lista exclusiva: Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo. Responde ÚNICAMENTE un JSON: {\"alergenos\": []}"
+            content: "Eres un experto en seguridad alimentaria. Tu tarea es identificar alérgenos en descripciones técnicas de alimentos (USDA). Responde ÚNICAMENTE con una lista JSON de alérgenos chilenos (Gluten, Lácteos, Huevos, Soya, Frutos secos, Pescado, Crustáceos, Sésamo). Si no hay, responde []. No incluyas explicaciones."
           },
           {
             role: "user",
-            content: `Ingrediente: ${ingredientName}`
+            content: `Identifica alérgenos para: ${description}`
           }
         ],
         response_format: { type: "json_object" }
@@ -207,8 +107,8 @@ async function callDeepSeekAI(ingredientName: string): Promise<string[] | null> 
 
     if (!response.ok) return null
     const data = await response.json()
-    const content = JSON.parse(data.choices[0].message.content)
-    return content.alergenos || []
+    const result = JSON.parse(data.choices[0].message.content)
+    return Array.isArray(result.allergens) ? result.allergens : (result.alergenos || [])
   } catch (error) {
     console.error('Error calling DeepSeek API (Allergens):', error)
     return null
@@ -393,6 +293,7 @@ export async function POST(request: Request) {
 
     let food: any = null
     let esGeneradoIA = false
+    let esNuevoRegistro = false
     let reasonAI = ''
 
     // FALLBACK A IA SI NO SE ENCONTRÓ EN LA DB
@@ -429,10 +330,10 @@ export async function POST(request: Request) {
           
           if (insertError) {
             console.error('Error saving AI generated food to DB:', insertError)
-            // Agregamos el error detallado a la respuesta para depuración (solo en desarrollo o temporalmente)
             reasonAI = `DB_SAVE_ERROR: ${insertError.message}`
           } else if (insertedFood) {
             food = insertedFood
+            esNuevoRegistro = true
             console.log('AI food cached successfully:', food.id)
           }
         } catch (e) {
@@ -448,15 +349,12 @@ export async function POST(request: Request) {
 
     if (!food) {
       let errorMessage = `No se encontró información para "${ingredientName}".`
-      if (reasonAI === 'AI_KEY_MISSING') errorMessage += ' (La clave de IA DeepSeek no está configurada en el servidor)'
+      if (reasonAI === 'AI_KEY_MISSING') errorMessage += ' (La clave de IA DeepSeek no está configurada)'
       else if (reasonAI === 'AI_API_ERROR_402') errorMessage += ' (Actualizar créditos de uso en DeepSeek)'
-      else if (reasonAI.startsWith('AI_API_ERROR')) errorMessage += ` (Error de servicio IA: ${reasonAI.split('_').pop()})`
-      else if (reasonAI === 'AI_EXCEPTION') errorMessage += ' (Error técnico al conectar con la IA)'
+      else if (reasonAI.startsWith('AI_API_ERROR')) errorMessage += ` (Error servicio IA: ${reasonAI.split('_').pop()})`
+      else if (reasonAI.startsWith('DB_SAVE_ERROR')) errorMessage += ` (Error al guardar en DB)`
       
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: errorMessage }, { status: 404 })
     }
 
     // Procesar nutrientes
@@ -475,37 +373,35 @@ export async function POST(request: Request) {
     const azucaresAñadidos = hasAddedSugars(descripcion)
     const grasasSaturadasAñadidas = hasAddedSaturatedFats(descripcion)
 
-    // Lógica de alérgenos
+    // Lógica de alérgenos y fuentes
     let alergenos = food.alergenos || []
     let origenAlergenos = 'Base de datos USDA'
     
+    // Identificar la fuente real de los datos
+    if (food.data_type === 'AI_GENERATED') {
+      origenAlergenos = 'IA-Deepseek (Aprendido)'
+    } else if (esGeneradoIA) {
+      origenAlergenos = 'IA-Deepseek'
+    }
+
+    // Si no hay alérgenos definidos, intentamos evaluarlos
     if (alergenos.length === 0) {
-      if (esGeneradoIA) {
-        origenAlergenos = 'IA-Deepseek'
+      const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
+      if (aiAlergenos && aiAlergenos.length > 0) {
+        alergenos = aiAlergenos
+        origenAlergenos = food.data_type === 'AI_GENERATED' ? 'IA-Deepseek (Aprendido)' : 'IA-Deepseek'
+        try {
+          await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
+        } catch (e) {}
       } else {
-        const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
-        if (aiAlergenos && aiAlergenos.length > 0) {
-          alergenos = aiAlergenos
-          origenAlergenos = 'IA-Deepseek'
-          try {
-            const { error: updateError } = await supabase
-              .from('usda_alimentos')
-              .update({ alergenos: aiAlergenos })
-              .eq('id', food.id)
-            
-            if (updateError) {
-              console.error('Error updating allergens cache:', updateError)
-            }
-          } catch (e) {
-            console.error('Exception updating allergens cache:', e)
-          }
-        } else {
-          alergenos = inferAllergens(food.description || englishSearch)
-          origenAlergenos = 'Análisis automático Nutrietiq'
-        }
+        alergenos = inferAllergens(food.description || englishSearch)
+        origenAlergenos = 'Análisis automático Nutrietiq'
       }
     } else {
-      origenAlergenos = esGeneradoIA ? 'IA-Deepseek (Aprendido)' : 'Base de datos USDA (Aprendido)'
+      // Ajuste final de etiqueta si ya tiene alérgenos pero es de la base oficial
+      if (food.data_type !== 'AI_GENERATED' && !esGeneradoIA) {
+         origenAlergenos = 'Base de datos USDA (Aprendido)'
+      }
     }
 
     const nombreSugeridoEs = food.description_es || translateToSpanish(food.description || englishSearch)
@@ -516,7 +412,8 @@ export async function POST(request: Request) {
         nombre_original_usda: food.description || englishSearch,
         alergenos_sugeridos: alergenos.length > 0 ? alergenos.join(', ') : '',
         origen_alergenos: origenAlergenos,
-        es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED'
+        es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED',
+        mensaje_sistema: esNuevoRegistro ? 'Ingrediente/alimento incorporado a la data' : null
       },
       composicion_nutricional: {
         energia_kcal: energia,

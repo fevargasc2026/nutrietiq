@@ -19,6 +19,7 @@ export function IngredientForm({
   const [loadingUSDA, setLoadingUSDA] = useState(false)
   const [errorStr, setErrorStr] = useState("")
   const [usdaMessage, setUsdaMessage] = useState("")
+  const [systemMessage, setSystemMessage] = useState("")
 
   const [nombre, setNombre] = useState(initialData?.nombre || "")
   const [alergenos, setAlergenos] = useState(initialData?.alergenos?.join(', ') || "")
@@ -87,8 +88,11 @@ export function IngredientForm({
         if (infoGeneral.origen_alergenos) {
           setAlergenosSource(infoGeneral.origen_alergenos)
         }
-        // Solo actualizar nombre si el usuario lo desea o si el nombre sugerido es más preciso
-        // Por ahora lo dejamos como está para no molestar al usuario
+        if (infoGeneral.mensaje_sistema) {
+          setSystemMessage(infoGeneral.mensaje_sistema)
+        } else {
+          setSystemMessage("")
+        }
       }
 
       setUsdaMessage(infoGeneral?.nombre_original_usda
@@ -187,6 +191,14 @@ export function IngredientForm({
               </div>
               {usdaMessage && (
                 <p className="text-xs text-green-600 mt-1">{usdaMessage}</p>
+              )}
+              {systemMessage && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                  <p className="text-xs text-blue-700 font-bold">
+                    {systemMessage}
+                  </p>
+                </div>
               )}
             </div>
             <div className="space-y-2 col-span-2">

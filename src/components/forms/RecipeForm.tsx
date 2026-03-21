@@ -188,9 +188,9 @@ export function RecipeForm({
     <form onSubmit={handleSubmit} className="pb-20">
       {errorStr && <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md text-sm">{errorStr}</div>}
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Left Column: Form Details & Ingredients */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           {/* General Data Section */}
           <div className="rounded-xl border bg-card shadow-sm p-6 space-y-4">
             <h3 className="text-lg font-medium tracking-tight border-b pb-2">Datos Generales</h3>

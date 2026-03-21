@@ -214,7 +214,7 @@ export function IngredientForm({
                   type="button"
                   onClick={handleUSDAQuery}
                   disabled={loadingUSDA}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300 h-10 px-3 py-2"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 bg-sky-100 text-sky-700 hover:bg-blue-600 hover:text-white border border-sky-200 h-10 px-3 py-2"
                   title="Consultar Base de Datos USDA"
                 >
                   {loadingUSDA ? (

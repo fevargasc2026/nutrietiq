@@ -36,8 +36,8 @@ export function Clock() {
         {formattedDate}
       </span>
       <div className="flex items-center gap-1.5 mt-0.5">
-        <span className="flex items-center px-1 py-0.5 rounded-[4px] bg-muted/50 border border-muted-foreground/10 text-[8.5px] font-bold text-muted-foreground/50 tracking-tight leading-none">
-          DEPLOY {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'LOCAL'}
+        <span className="text-right text-[10px] font-bold text-muted-foreground/30 tracking-tight leading-none">
+          Deploy {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'local'}
         </span>
         <span className="text-sm font-mono font-bold text-primary tabular-nums">
           {formattedTime}

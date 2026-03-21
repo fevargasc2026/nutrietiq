@@ -47,7 +47,7 @@ export default async function EditarRecetaPage({ params }: { params: Promise<{ i
   }))
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-7xl items-start">
       <div className="flex items-center gap-4">
         <Link href="/recetas" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">
           <ArrowLeft className="h-4 w-4" />

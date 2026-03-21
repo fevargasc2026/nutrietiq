@@ -380,30 +380,30 @@ export function RecipeForm({
             <div className="space-y-4">
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-blue-500">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Receta</p>
-                <p className="text-2xl font-black text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
+                <p className="text-xl font-bold text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
               </div>
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-amber-500">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Real (+{costoIndirectoPct}%)</p>
-                <p className="text-2xl font-black text-foreground">${Math.round(costoTotalReal).toLocaleString('es-CL')}</p>
+                <p className="text-xl font-bold text-foreground">${Math.round(costoTotalReal).toLocaleString('es-CL')}</p>
               </div>
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-green-600">
                 <p className="text-[10px] font-bold text-green-700 uppercase">Precio Sugerido</p>
-                <p className="text-2xl font-black text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
+                <p className="text-xl font-bold text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
               </div>
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-emerald-500">
                 <p className="text-[10px] font-bold text-emerald-600 uppercase">Margen Contrib.</p>
-                <p className="text-2xl font-black text-emerald-600">${Math.round(margenContribucion).toLocaleString('es-CL')}</p>
+                <p className="text-xl font-bold text-emerald-600">${Math.round(margenContribucion).toLocaleString('es-CL')}</p>
               </div>
             </div>
 
             <div className="rounded-lg border bg-green-50/50 p-4 space-y-3 shadow-sm">
               <div>
                 <p className="text-[10px] font-semibold text-green-800 uppercase tracking-wider">Precio Sugerido Venta</p>
-                <p className="text-3xl font-black text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
+                <p className="text-2xl font-bold text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
               </div>
               <div className="pt-2 border-t border-green-200">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">P.V.P x Porción</p>
-                <p className="text-xl font-bold text-foreground">${Math.round(precioPorPorcion).toLocaleString('es-CL')}</p>
+                <p className="text-lg font-bold text-foreground">${Math.round(precioPorPorcion).toLocaleString('es-CL')}</p>
               </div>
             </div>
 

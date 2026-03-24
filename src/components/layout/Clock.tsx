@@ -37,7 +37,7 @@ export function Clock() {
       </span>
       <div className="flex items-center gap-1.5 mt-0.5">
         <span className="text-right text-xs font-normal text-muted-foreground tracking-tight leading-none">
-          Deploy (Vercel) {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'local'}000{time.getFullYear()}
+          Deploy {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'local'}000{time.getFullYear()}
         </span>
         <span className="text-sm font-mono font-bold text-primary tabular-nums">
           {formattedTime}

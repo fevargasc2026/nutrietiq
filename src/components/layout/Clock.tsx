@@ -32,12 +32,12 @@ export function Clock() {
 
   return (
     <div className="hidden md:flex flex-col items-end px-4 border-r border-muted-foreground/20 mr-4">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
         {formattedDate}
       </span>
       <div className="flex items-center gap-1.5 mt-0.5">
-        <span className="text-right text-[10px] font-bold text-muted-foreground/30 tracking-tight leading-none">
-          Deploy {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'local'}
+        <span className="text-right text-sm font-bold text-foreground tracking-tight leading-none">
+          Deploy (Vercel)
         </span>
         <span className="text-sm font-mono font-bold text-primary tabular-nums">
           {formattedTime}

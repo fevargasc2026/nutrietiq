@@ -78,16 +78,9 @@ export function RecipeForm({
     return acc + calculateIngredientCost(curr.id, curr.peso)
   }, 0)
 
-  const indPct = parseFloat(costoIndirectoPct) || 0
-  const factor = parseFloat(markupFactor) || 1
-  
-  const costoIndirecto = (costoTotalReceta * indPct) / 100
-  const costoTotalReal = costoTotalReceta + costoIndirecto
-  const precioSugerido = costoTotalReal * factor
-  const margenContribucion = precioSugerido - costoTotalReceta
-
-  const costoPorPorcion = costoTotalReceta / porcionesNum
-  const precioPorPorcion = precioSugerido / porcionesNum
+  // Note: Cost calculations like indPct, factor, and costoTotalReal have been removed 
+  // from the UI render scope as they are no longer displayed in the summary.
+  // The input states (costoIndirectoPct, markupFactor) are still saved in handleSubmit.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -375,35 +368,12 @@ export function RecipeForm({
         {/* Right Column: Sticky Summary & Actions */}
         <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-20">
           <div className="rounded-xl border bg-card shadow-sm p-6 space-y-4">
-            <h3 className="text-lg font-medium tracking-tight border-b pb-2">Resumen de Valorización</h3>
+            <h3 className="text-lg font-medium tracking-tight border-b pb-2">Costo Variable</h3>
             
             <div className="space-y-4">
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-blue-500">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Receta</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Materias Primas</p>
                 <p className="text-xl font-bold text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
-              </div>
-              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-amber-500">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Real (+{costoIndirectoPct}%)</p>
-                <p className="text-xl font-bold text-foreground">${Math.round(costoTotalReal).toLocaleString('es-CL')}</p>
-              </div>
-              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-green-600">
-                <p className="text-[10px] font-bold text-green-700 uppercase">Precio Sugerido</p>
-                <p className="text-xl font-bold text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
-              </div>
-              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-emerald-500">
-                <p className="text-[10px] font-bold text-emerald-600 uppercase">Margen Contrib.</p>
-                <p className="text-xl font-bold text-emerald-600">${Math.round(margenContribucion).toLocaleString('es-CL')}</p>
-              </div>
-            </div>
-
-            <div className="rounded-lg border bg-green-50/50 p-4 space-y-3 shadow-sm">
-              <div>
-                <p className="text-[10px] font-semibold text-green-800 uppercase tracking-wider">Precio Sugerido Venta</p>
-                <p className="text-2xl font-bold text-green-700">${Math.round(precioSugerido).toLocaleString('es-CL')}</p>
-              </div>
-              <div className="pt-2 border-t border-green-200">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">P.V.P x Porción</p>
-                <p className="text-lg font-bold text-foreground">${Math.round(precioPorPorcion).toLocaleString('es-CL')}</p>
               </div>
             </div>
 

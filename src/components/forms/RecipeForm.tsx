@@ -252,7 +252,7 @@ export function RecipeForm({
 
             {/* Professional Cost Factors - Disabled Info */}
             <div className="pt-4 border-t border-dashed">
-              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Parámetros Globales (Solo Lectura)</h4>
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">PARAMETROS</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -293,9 +293,6 @@ export function RecipeForm({
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 italic flex items-center gap-1">
-                La parametrización se modifica en <a href="/configuracion" target="_blank" className="underline hover:text-primary">Configuración &gt; Preferencias del Sistema</a>.
-              </p>
             </div>
 
             {/* Yield Test Warning */}

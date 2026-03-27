@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, Building2, CreditCard, MapPin, FileCheck, Calendar } from 'lucide-react'
+import { Save, Building2, CreditCard, MapPin, FileCheck, Calendar, Settings } from 'lucide-react'
 import { updateEmpresaConfig } from '@/app/actions/configuracion'
 
 interface CompanyConfigFormProps {
@@ -11,6 +11,8 @@ interface CompanyConfigFormProps {
     direccion: string
     resolucion: string
     fecha_res: string
+    buffer_pct: number
+    markup_factor: number
     userRole: string
   } | null
 }
@@ -161,6 +163,56 @@ export function CompanyConfigForm({ initialData }: CompanyConfigFormProps) {
                   disabled={!isSuperUsuario}
                   type="date" 
                   className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- NUEVA SECCIÓN: PREFERENCIAS DEL SISTEMA --- */}
+        <div className="p-6 bg-muted/30 border-t">
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+            <Settings className="h-5 w-5 text-primary" />
+            Preferencias del Sistema
+          </h3>
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Buffer % (Costo Indirecto / Ajuste)
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Aplica a nuevas recetas al momento de editarlas o crearlas">?</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input 
+                  name="buffer_pct"
+                  type="number" 
+                  step="0.5" 
+                  min="0"
+                  required
+                  defaultValue={initialData.buffer_pct}
+                  disabled={!isSuperUsuario}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
+                />
+                <span className="text-sm font-bold text-muted-foreground">%</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Factor Mark-up Global
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Aplica a nuevas recetas al momento de editarlas o crearlas">?</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-muted-foreground">x</span>
+                <input 
+                  name="markup_factor"
+                  type="number" 
+                  step="0.1" 
+                  min="1"
+                  required
+                  defaultValue={initialData.markup_factor}
+                  disabled={!isSuperUsuario}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
                 />
               </div>
             </div>

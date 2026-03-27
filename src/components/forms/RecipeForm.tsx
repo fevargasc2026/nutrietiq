@@ -17,11 +17,15 @@ type IngredienteOpcion = {
 export function RecipeForm({ 
   ingredientesLista, 
   initialData, 
-  recetaIngredientes = [] 
+  recetaIngredientes = [],
+  bufferPct,
+  markupFactor
 }: { 
   ingredientesLista: IngredienteOpcion[],
   initialData?: any,
-  recetaIngredientes?: { id: string, peso_gramos: number }[]
+  recetaIngredientes?: { id: string, peso_gramos: number }[],
+  bufferPct?: number,
+  markupFactor?: number
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -32,8 +36,12 @@ export function RecipeForm({
   const [categoria, setCategoria] = useState(initialData?.categoria || "")
   const [pesoFinal, setPesoFinal] = useState(initialData?.peso_final?.toString() || "100")
   const [porciones, setPorciones] = useState(initialData?.porciones?.toString() || "1")
-  const [costoIndirectoPct, setCostoIndirectoPct] = useState(initialData?.costo_indirecto_pct?.toString() || "5")
-  const [markupFactor, setMarkupFactor] = useState(initialData?.markup_factor?.toString() || "3.0")
+  const [costoIndirectoPct, setCostoIndirectoPct] = useState(
+    bufferPct !== undefined ? bufferPct.toString() : (initialData?.costo_indirecto_pct?.toString() || "5")
+  )
+  const [markupFactorState, setMarkupFactorState] = useState(
+    markupFactor !== undefined ? markupFactor.toString() : (initialData?.markup_factor?.toString() || "3.0")
+  )
   
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>(
     recetaIngredientes.length > 0 
@@ -99,7 +107,7 @@ export function RecipeForm({
         factor_rendimiento: isNaN(rendimiento) ? 1.0 : parseFloat(rendimiento.toFixed(4)),
         porciones: porcionesNum,
         costo_indirecto_pct: parseFloat(costoIndirectoPct) || 0,
-        markup_factor: parseFloat(markupFactor) || 1,
+        markup_factor: parseFloat(markupFactorState) || 1,
         usuario_creador: userData.user.id
       }
 
@@ -242,46 +250,52 @@ export function RecipeForm({
               </div>
             </div>
 
-            {/* Professional Cost Factors */}
-            <div className="grid gap-4 md:grid-cols-2 pt-2 border-t border-dashed">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    % Costo Indirecto (Oculto)
-                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Condimentos, aceite de latas, merma técnica">?</span>
-                  </label>
+            {/* Professional Cost Factors - Disabled Info */}
+            <div className="pt-4 border-t border-dashed">
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Parámetros Globales (Solo Lectura)</h4>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      Buffer %
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Condimentos, aceite de latas, merma técnica">?</span>
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="number" 
+                      step="0.5" 
+                      min="0"
+                      disabled
+                      value={costoIndirectoPct} 
+                      className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" 
+                    />
+                    <span className="text-sm font-bold text-muted-foreground">%</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="number" 
-                    step="0.5" 
-                    min="0"
-                    value={costoIndirectoPct} 
-                    onChange={e => setCostoIndirectoPct(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                  />
-                  <span className="text-sm font-bold text-muted-foreground">%</span>
+                <div className="space-y-2">
+                   <div className="flex justify-between">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      Factor Mark-up
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Multiplicador para cubrir labor, gastos fijos y utilidad">?</span>
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-muted-foreground">x</span>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      min="1"
+                      disabled
+                      value={markupFactorState} 
+                      className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" 
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                 <div className="flex justify-between">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    Factor Mark-up
-                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Multiplicador para cubrir labor, gastos fijos y utilidad">?</span>
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-muted-foreground">x</span>
-                  <input 
-                    type="number" 
-                    step="0.1" 
-                    min="1"
-                    value={markupFactor} 
-                    onChange={e => setMarkupFactor(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                  />
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground mt-2 italic flex items-center gap-1">
+                La parametrización se modifica en <a href="/configuracion" target="_blank" className="underline hover:text-primary">Configuración &gt; Preferencias del Sistema</a>.
+              </p>
             </div>
 
             {/* Yield Test Warning */}

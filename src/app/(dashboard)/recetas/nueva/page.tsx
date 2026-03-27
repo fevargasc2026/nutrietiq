@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Plus } from 'lucide-react'
+import { getEmpresaConfig } from '@/app/actions/configuracion'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,7 @@ export default async function NuevaRecetaPage() {
 
   // Need ingredients list to populate select
   const { data: ingredientes, error } = await supabase.from('ingredientes').select('id, nombre, energia_kcal, costo_unitario, unidad_medida_costo').order('nombre')
+  const configGlobal = await getEmpresaConfig()
 
   if (error) {
     return (
@@ -44,7 +46,11 @@ export default async function NuevaRecetaPage() {
       </div>
       
       {/* Client component import to handle dynamic lists */}
-      <RecipeForm ingredientesLista={ingredientes || []} />
+      <RecipeForm 
+        ingredientesLista={ingredientes || []} 
+        bufferPct={configGlobal?.buffer_pct}
+        markupFactor={configGlobal?.markup_factor}
+      />
     </div>
   )
 }

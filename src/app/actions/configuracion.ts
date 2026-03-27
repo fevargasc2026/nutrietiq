@@ -59,6 +59,10 @@ export async function updateEmpresaConfig(formData: FormData) {
   const direccion = formData.get('direccion') as string
   const resolucion = formData.get('resolucion') as string
   const fechaRes = formData.get('fecha_res') as string
+  
+  // Preferencias de sistema
+  const bufferPct = parseFloat(formData.get('buffer_pct') as string) || 5.0
+  const markupFactor = parseFloat(formData.get('markup_factor') as string) || 3.0
 
   // 3. Update (Note: we use the profile.empresa to identify the row to update)
   // If the company name itself changes, we rely on ON UPDATE CASCADE in the FK
@@ -70,6 +74,8 @@ export async function updateEmpresaConfig(formData: FormData) {
       direccion,
       resolucion,
       fecha_res: fechaRes,
+      buffer_pct: bufferPct,
+      markup_factor: markupFactor,
       fecha_actualizacion: new Date().toISOString()
     })
     .eq('empresa', profile.empresa)

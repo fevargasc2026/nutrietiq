@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { RecipeForm } from '@/components/forms/RecipeForm'
+import { getEmpresaConfig } from '@/app/actions/configuracion'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,8 @@ export default async function EditarRecetaPage({ params }: { params: Promise<{ i
     .from('ingredientes')
     .select('id, nombre, energia_kcal, costo_unitario, unidad_medida_costo')
     .order('nombre')
+
+  const configGlobal = await getEmpresaConfig()
 
   if (recipeError || ingsError || !receta) {
     return (
@@ -62,6 +65,8 @@ export default async function EditarRecetaPage({ params }: { params: Promise<{ i
         ingredientesLista={ingredientes} 
         initialData={receta}
         recetaIngredientes={mappedIngredients}
+        bufferPct={configGlobal?.buffer_pct}
+        markupFactor={configGlobal?.markup_factor}
       />
     </div>
   )

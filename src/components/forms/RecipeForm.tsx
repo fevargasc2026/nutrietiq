@@ -432,22 +432,27 @@ export function RecipeForm({
             
             <div className="space-y-4">
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-blue-500">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Materias Primas</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">1. Costo Materias Primas</p>
                 <p className="text-xl font-bold text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
               </div>
 
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-sky-400">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Materia Prima + Buffer ({bufferNum}%)</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">2. Materia Prima + Buffer ({bufferNum}%)</p>
                 <p className="text-xl font-bold text-foreground">${costoConBuffer.toLocaleString('es-CL')}</p>
               </div>
 
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-purple-500">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Valorización Mark-Up (x{markupNum})</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">3. Valorización Mark-Up (x{markupNum})</p>
                 <p className="text-xl font-bold text-foreground">${costoConMarkup.toLocaleString('es-CL')}</p>
               </div>
 
+              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-amber-500">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">4. (+) Costo Transporte</p>
+                <p className="text-xl font-bold text-foreground">${transporteNum.toLocaleString('es-CL')}</p>
+              </div>
+
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-green-600 bg-green-50/30">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Total Final (+ Transporte)</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">COSTO TOTAL FINAL (3 + 4)</p>
                 <p className="text-2xl font-black text-green-700 font-mono">${costoTotalFinal.toLocaleString('es-CL')}</p>
               </div>
             </div>

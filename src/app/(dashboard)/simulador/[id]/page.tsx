@@ -63,7 +63,7 @@ export default async function SimuladorPage({ params }: { params: Promise<{ id: 
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Simulador Nutricional</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Etiqueta Nutricional</h1>
           <p className="text-muted-foreground mt-1 flex items-center gap-2">
             Receta: <span className="font-bold text-foreground text-lg">{receta.nombre}</span>
           </p>

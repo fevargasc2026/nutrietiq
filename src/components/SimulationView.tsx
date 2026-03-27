@@ -138,26 +138,8 @@ export function SimulationView({
               <span className="text-lg font-black text-green-800">${Math.round(costoTotal).toLocaleString('es-CL')}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-green-600 italic">
-              <span>+ {costoIndirectoPct} % Costos Ocultos:</span>
+              <span>+ {costoIndirectoPct}% Buffer:</span>
               <span>$ {Math.round(costoIndirecto).toLocaleString('es-CL')}</span>
-            </div>
-            <div className="border-t border-green-200 pt-2 flex justify-between items-center">
-              <span className="text-xs font-bold text-green-700 uppercase">COSTO REAL:</span>
-              <span className="text-lg font-black text-green-900">${Math.round(costoTotalReal).toLocaleString('es-CL')}</span>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-green-200 space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-emerald-700 uppercase">PRECIO SUGERIDO</span>
-                <span className="text-[10px] text-emerald-600">Mark-up: x{markupFactor}</span>
-              </div>
-              <span className="text-2xl font-black text-emerald-800">${Math.round(precioSugerido).toLocaleString('es-CL')}</span>
-            </div>
-            <div className="flex justify-between items-center bg-emerald-100/50 p-2 rounded">
-              <span className="text-[10px] font-bold text-emerald-700 uppercase">Margen Contribución:</span>
-              <span className="text-sm font-bold text-emerald-800">${Math.round(margenContribucion).toLocaleString('es-CL')}</span>
             </div>
           </div>
         </div>

@@ -56,7 +56,7 @@ export function RecipeForm({
     markupFactor !== undefined ? markupFactor.toString() : (initialData?.markup_factor?.toString() || "3.0")
   )
   const [costoTransporteState, setCostoTransporteState] = useState(
-    initialData?.costo_transporte !== undefined ? initialData.costo_transporte.toString() : (costoTransporte?.toString() || "0")
+    costoTransporte !== undefined ? costoTransporte.toString() : (initialData?.costo_transporte?.toString() || "0")
   )
   
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>(

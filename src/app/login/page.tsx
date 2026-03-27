@@ -31,9 +31,10 @@ export default async function LoginPage(props: {
 
       revalidatePath('/', 'layout')
       redirect('/')
-    } catch (e: any) {
-      if (e.message === 'NEXT_REDIRECT') throw e;
-      redirect(`/login?message=${encodeURIComponent(e.message || 'Error inesperado')}`)
+    } catch (e) {
+      if (e instanceof Error && e.message === 'NEXT_REDIRECT') throw e;
+      const error = e as Error;
+      redirect(`/login?message=${encodeURIComponent(error.message || 'Error inesperado')}`)
     }
   }
 

@@ -67,6 +67,7 @@ export default async function EditarRecetaPage({ params }: { params: Promise<{ i
         recetaIngredientes={mappedIngredients}
         bufferPct={configGlobal?.buffer_pct}
         markupFactor={configGlobal?.markup_factor}
+        costoTransporte={configGlobal?.costo_transporte}
       />
     </div>
   )

@@ -5,10 +5,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || 'local',
   },
   /* @ts-ignore */
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-  /* @ts-ignore */
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -36,6 +32,10 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co https://*.deepseek.com; frame-ancestors 'none'; upgrade-insecure-requests;",
           },
         ],
       },

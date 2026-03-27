@@ -1,17 +1,32 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Save, AlertTriangle, Sparkles, Loader2 } from 'lucide-react'
+import { Save, Sparkles, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { forceRevalidate } from '@/app/actions'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface IngredientInitialData {
+  id?: string;
+  nombre?: string;
+  alergenos?: string[];
+  energia_kcal?: number;
+  proteina_g?: number;
+  grasa_total_g?: number;
+  grasa_saturada_g?: number;
+  carbohidratos_g?: number;
+  azucares_g?: number;
+  sodio_mg?: number;
+  costo_unitario?: number;
+  unidad_medida_costo?: string;
+  added_sugars?: boolean;
+  added_saturated_fats?: boolean;
+}
+
 export function IngredientForm({ 
   initialData 
 }: { 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialData?: any 
+  initialData?: IngredientInitialData 
 }) {
   const router = useRouter()
   const supabase = createClient()

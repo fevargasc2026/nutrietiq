@@ -25,7 +25,8 @@ export function DeleteRecipeButton({ id, recipeName }: { id: string, recipeName:
       if (error) throw error
 
       router.refresh()
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       alert(`Error al eliminar: ${error.message}`)
       setIsDeleting(false)
     }

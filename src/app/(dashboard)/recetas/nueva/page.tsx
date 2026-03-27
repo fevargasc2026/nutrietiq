@@ -50,6 +50,7 @@ export default async function NuevaRecetaPage() {
         ingredientesLista={ingredientes || []} 
         bufferPct={configGlobal?.buffer_pct}
         markupFactor={configGlobal?.markup_factor}
+        costoTransporte={configGlobal?.costo_transporte}
       />
     </div>
   )

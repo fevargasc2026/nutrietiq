@@ -28,7 +28,8 @@ Solo un SuperUsuario posee los privilegios para realizar esta acción crítica.`
       if (error) throw error
 
       router.refresh()
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       alert(`Error al eliminar: ${error.message}`)
       setIsDeleting(false)
     }

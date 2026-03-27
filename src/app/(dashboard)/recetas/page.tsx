@@ -1,10 +1,22 @@
 import { createClient } from '@/utils/supabase/server'
-import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import Link from 'next/link'
-import { DeleteRecipeButton } from '@/components/DeleteRecipeButton'
 import { RefreshButton } from '@/components/RefreshButton'
+import { RecipeList } from '@/components/RecipeList'
 
 export const dynamic = 'force-dynamic'
+
+interface RecipeWithUser {
+  id: string;
+  nombre: string;
+  categoria: string | null;
+  porciones: number;
+  peso_final: number;
+  fecha_creacion: string;
+  usuarios: {
+    nombre: string | null;
+  } | null;
+}
 
 export default async function RecetasPage() {
   const supabase = await createClient()
@@ -21,6 +33,8 @@ export default async function RecetasPage() {
       usuarios (nombre)
     `)
     .order('fecha_creacion', { ascending: false })
+
+  const typedRecetas = (recetas || []) as unknown as RecipeWithUser[];
 
   return (
     <div className="space-y-6">
@@ -40,72 +54,7 @@ export default async function RecetasPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
-        <div className="p-6 flex flex-col gap-4">
-          <div className="flex items-center px-3 py-2 border rounded-md bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 w-full max-w-sm">
-            <Search className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-            <input 
-              placeholder="Buscar receta..." 
-              className="flex h-6 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50" 
-            />
-          </div>
-
-          <div className="relative w-full overflow-auto">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nombre</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Categoría</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Peso Final (g)</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Porciones</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Creador</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Fecha</th>
-                  <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="[&_tr:last-child]:border-0">
-                {recetas?.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground text-sm border-b">
-                      No tienes recetas creadas aún. Crea la primera para empezar a simular etiquetas.
-                    </td>
-                  </tr>
-                ) : (
-                  recetas?.map((receta) => (
-                    <tr key={receta.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td className="p-4 align-middle font-medium">{receta.nombre}</td>
-                      <td className="p-4 align-middle">{receta.categoria || '-'}</td>
-                      <td className="p-4 align-middle">{receta.peso_final}</td>
-                      <td className="p-4 align-middle">{receta.porciones}</td>
-                      <td className="p-4 align-middle">{(receta.usuarios as any)?.nombre || 'Desconocido'}</td>
-                      <td className="p-4 align-middle">{new Date(receta.fecha_creacion).toLocaleDateString('es-CL')}</td>
-                      <td className="p-4 align-middle">
-                         <div className="flex items-center justify-center gap-2">
-                           <Link 
-                             href={`/simulador/${receta.id}`} 
-                             title="Ver etiqueta nutricional"
-                             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-blue-600"
-                           >
-                             <Eye className="h-4 w-4" />
-                           </Link>
-                            <Link 
-                              href={`/recetas/${receta.id}/editar`} 
-                              title="Editar receta"
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Link>
-                            <DeleteRecipeButton id={receta.id} recipeName={receta.nombre} />
-                         </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <RecipeList initialRecipes={typedRecetas} />
     </div>
   )
 }

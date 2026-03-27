@@ -31,6 +31,7 @@ export function SimulationView({
   pesoFinal,
   costoIndirectoPct = 5,
   markupFactor = 3.0,
+  costoTransporte = 0,
   ingredientesCosteo = [],
   companyData = null
 }: { 
@@ -40,6 +41,7 @@ export function SimulationView({
   pesoFinal: number,
   costoIndirectoPct?: number,
   markupFactor?: number,
+  costoTransporte?: number,
   ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[],
   companyData?: { empresa: string, rut: string, direccion: string, resolucion: string, fecha_res: string } | null
 }) {
@@ -101,12 +103,15 @@ export function SimulationView({
   }, 0)
 
   const costoIndirecto = (costoTotal * costoIndirectoPct) / 100
-  const costoTotalReal = costoTotal + costoIndirecto
-  const precioSugerido = costoTotalReal * markupFactor
-  const margenContribucion = precioSugerido - costoTotal
+  const costoConBuffer = costoTotal + costoIndirecto
+  const precioSugeridoConMarkup = costoConBuffer * markupFactor
+  const precioTotalFinal = precioSugeridoConMarkup + costoTransporte
+  
+  const costoTotalFinal = precioTotalFinal
+  const margenContribucion = costoTotalFinal - costoTotal
   
   const costoPorPorcion = costoTotal / porciones
-  const precioPorPorcion = precioSugerido / porciones
+  const precioPorPorcion = costoTotalFinal / porciones
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -140,6 +145,14 @@ export function SimulationView({
             <div className="flex justify-between items-center text-xs text-green-600 italic">
               <span>+ {costoIndirectoPct}% Buffer:</span>
               <span>$ {Math.round(costoIndirecto).toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-green-600 italic">
+              <span>x {markupFactor} Mark-Up:</span>
+              <span>$ {Math.round(precioSugeridoConMarkup).toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-between items-center border-t border-green-200 mt-2 pt-2">
+              <span className="text-xs font-bold text-green-800 uppercase">Costo Final (+ Transp.):</span>
+              <span className="text-xl font-black text-green-900">$ {Math.round(precioTotalFinal).toLocaleString('es-CL')}</span>
             </div>
           </div>
         </div>

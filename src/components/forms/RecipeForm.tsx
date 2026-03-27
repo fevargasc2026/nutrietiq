@@ -14,18 +14,31 @@ type IngredienteOpcion = {
   unidad_medida_costo: string;
 }
 
+interface RecipeInitialData {
+  id?: string;
+  nombre?: string;
+  categoria?: string;
+  peso_final?: number;
+  porciones?: number;
+  costo_indirecto_pct?: number;
+  markup_factor?: number;
+  costo_transporte?: number;
+}
+
 export function RecipeForm({ 
   ingredientesLista, 
   initialData, 
   recetaIngredientes = [],
   bufferPct,
-  markupFactor
+  markupFactor,
+  costoTransporte
 }: { 
   ingredientesLista: IngredienteOpcion[],
-  initialData?: any,
+  initialData?: RecipeInitialData,
   recetaIngredientes?: { id: string, peso_gramos: number }[],
   bufferPct?: number,
-  markupFactor?: number
+  markupFactor?: number,
+  costoTransporte?: number
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -36,11 +49,14 @@ export function RecipeForm({
   const [categoria, setCategoria] = useState(initialData?.categoria || "")
   const [pesoFinal, setPesoFinal] = useState(initialData?.peso_final?.toString() || "100")
   const [porciones, setPorciones] = useState(initialData?.porciones?.toString() || "1")
-  const [costoIndirectoPct, setCostoIndirectoPct] = useState(
+  const [costoIndirectoPct] = useState(
     bufferPct !== undefined ? bufferPct.toString() : (initialData?.costo_indirecto_pct?.toString() || "5")
   )
-  const [markupFactorState, setMarkupFactorState] = useState(
+  const [markupFactorState] = useState(
     markupFactor !== undefined ? markupFactor.toString() : (initialData?.markup_factor?.toString() || "3.0")
+  )
+  const [costoTransporteState, setCostoTransporteState] = useState(
+    initialData?.costo_transporte !== undefined ? initialData.costo_transporte.toString() : (costoTransporte?.toString() || "0")
   )
   
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<{id: string, peso: string}[]>(
@@ -86,6 +102,15 @@ export function RecipeForm({
     return acc + calculateIngredientCost(curr.id, curr.peso)
   }, 0)
 
+  // -- CALCULOS DE COSTOS SECUENCIALES --
+  const bufferNum = parseFloat(costoIndirectoPct) || 0
+  const markupNum = parseFloat(markupFactorState) || 1
+  const transporteNum = parseFloat(costoTransporteState) || 0
+
+  const costoConBuffer = costoTotalReceta * (1 + bufferNum / 100)
+  const costoConMarkup = costoConBuffer * markupNum
+  const costoTotalFinal = costoConMarkup + transporteNum
+
   // Note: Cost calculations like indPct, factor, and costoTotalReal have been removed 
   // from the UI render scope as they are no longer displayed in the summary.
   // The input states (costoIndirectoPct, markupFactor) are still saved in handleSubmit.
@@ -108,6 +133,7 @@ export function RecipeForm({
         porciones: porcionesNum,
         costo_indirecto_pct: parseFloat(costoIndirectoPct) || 0,
         markup_factor: parseFloat(markupFactorState) || 1,
+        costo_transporte: parseFloat(costoTransporteState) || 0,
         usuario_creador: userData.user.id
       }
 
@@ -178,9 +204,11 @@ export function RecipeForm({
       // Small delay to ensure DB propagation in some cases, though usually not needed
       router.push('/recetas')
       router.refresh()
-    } catch (err: any) {
-      console.error("Critical error in handleSubmit:", err)
-      setErrorStr(err.message || 'Ocurrió un error al guardar la receta. Verifica que la base de datos esté actualizada.')
+    } catch (err) {
+      const error = err as Error;
+      console.error("Critical error in handleSubmit:", error)
+      setErrorStr(error.message || 'Ocurrió un error al guardar la receta. Verifica que la base de datos esté actualizada.')
+    } finally {
       setLoading(false)
     }
   }
@@ -253,7 +281,7 @@ export function RecipeForm({
             {/* Professional Cost Factors - Disabled Info */}
             <div className="pt-4 border-t border-dashed">
               <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">PARAMETROS</h4>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <label className="text-sm font-medium flex items-center gap-1">
@@ -273,6 +301,7 @@ export function RecipeForm({
                     <span className="text-sm font-bold text-muted-foreground">%</span>
                   </div>
                 </div>
+
                 <div className="space-y-2">
                    <div className="flex justify-between">
                     <label className="text-sm font-medium flex items-center gap-1">
@@ -289,6 +318,26 @@ export function RecipeForm({
                       disabled
                       value={markupFactorState} 
                       className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                   <div className="flex justify-between">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      Costo Transporte
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Costo fijo de logística aplicado al final de la valorización">?</span>
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-muted-foreground">$</span>
+                    <input 
+                      type="number" 
+                      step="1" 
+                      min="0"
+                      value={costoTransporteState} 
+                      onChange={e => setCostoTransporteState(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
                     />
                   </div>
                 </div>
@@ -385,6 +434,21 @@ export function RecipeForm({
               <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-blue-500">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Materias Primas</p>
                 <p className="text-xl font-bold text-foreground">${costoTotalReceta.toLocaleString('es-CL')}</p>
+              </div>
+
+              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-sky-400">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Materia Prima + Buffer ({bufferNum}%)</p>
+                <p className="text-xl font-bold text-foreground">${costoConBuffer.toLocaleString('es-CL')}</p>
+              </div>
+
+              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-purple-500">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Valorización Mark-Up (x{markupNum})</p>
+                <p className="text-xl font-bold text-foreground">${costoConMarkup.toLocaleString('es-CL')}</p>
+              </div>
+
+              <div className="rounded-lg border bg-background p-3 shadow-sm border-l-4 border-l-green-600 bg-green-50/30">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Costo Total Final (+ Transporte)</p>
+                <p className="text-2xl font-black text-green-700 font-mono">${costoTotalFinal.toLocaleString('es-CL')}</p>
               </div>
             </div>
 

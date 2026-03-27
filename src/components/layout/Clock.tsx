@@ -6,12 +6,20 @@ export function Clock() {
   const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    setTime(new Date());
+    // Evitar setState sincrónico para prevenir "cascading renders"
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Primera actualización diferida para cumplir con linting
+    const initialTimer = setTimeout(() => {
+      setTime(new Date());
+    }, 0);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(initialTimer);
+    };
   }, []);
 
   if (!time) return null;

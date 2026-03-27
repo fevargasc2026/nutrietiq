@@ -13,6 +13,7 @@ interface CompanyConfigFormProps {
     fecha_res: string
     buffer_pct: number
     markup_factor: number
+    costo_transporte: number
     userRole: string
   } | null
 }
@@ -32,8 +33,9 @@ export function CompanyConfigForm({ initialData }: CompanyConfigFormProps) {
     try {
       await updateEmpresaConfig(formData)
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -212,7 +214,27 @@ export function CompanyConfigForm({ initialData }: CompanyConfigFormProps) {
                   required
                   defaultValue={initialData.markup_factor}
                   disabled={!isSuperUsuario}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Costo Transporte Fijo
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 rounded-full" title="Costo fijo por despacho/transporte aplicado al final de la valorización">?</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-muted-foreground">$</span>
+                <input 
+                  name="costo_transporte"
+                  type="number" 
+                  step="1" 
+                  min="0"
+                  required
+                  defaultValue={initialData.costo_transporte || 0}
+                  disabled={!isSuperUsuario}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
+                  placeholder="Ej. 5000"
                 />
               </div>
             </div>

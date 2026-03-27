@@ -28,10 +28,24 @@ export default async function UsuariosPage() {
 
   const updateRole = async (formData: FormData) => {
     'use server';
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Verify SuperUsuario role again in Server Action
+    const { data: profile } = await supabase
+      .from('usuarios')
+      .select('rol')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.rol !== 'SuperUsuario') {
+      throw new Error('No autorizado');
+    }
+
     const userId = formData.get('userId') as string;
     const newRole = formData.get('role') as string;
 
-    const supabase = await createClient();
     const { error } = await supabase
       .from('usuarios')
       .update({ rol: newRole })
@@ -45,9 +59,23 @@ export default async function UsuariosPage() {
 
   const deleteUser = async (formData: FormData) => {
     'use server';
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Verify SuperUsuario role again in Server Action
+    const { data: profile } = await supabase
+      .from('usuarios')
+      .select('rol')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.rol !== 'SuperUsuario') {
+      throw new Error('No autorizado');
+    }
+
     const userId = formData.get('userId') as string;
 
-    const supabase = await createClient();
     const { error } = await supabase
       .from('usuarios')
       .delete()

@@ -58,7 +58,6 @@ export async function updateEmpresaConfig(formData: FormData) {
   const rut = formData.get('rut') as string
   const direccion = formData.get('direccion') as string
   const resolucion = formData.get('resolucion') as string
-  const resolucionSanitaria = formData.get('resolucion_sanitaria') as string
   const fechaRes = formData.get('fecha_res') as string
   
   // Preferencias de sistema
@@ -75,7 +74,6 @@ export async function updateEmpresaConfig(formData: FormData) {
       rut,
       direccion,
       resolucion,
-      resolucion_sanitaria: resolucionSanitaria,
       fecha_res: fechaRes,
       buffer_pct: bufferPct,
       markup_factor: markupFactor,

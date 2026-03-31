@@ -83,11 +83,11 @@ export function SimulationView({
     const element = document.getElementById('etiqueta-print-area')
     if (!element) return
     const opt = {
-      margin: 10,
-      filename: `Reporte_Nutrietiq_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      margin: 0,
+      filename: `Etiquetas_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 4, useCORS: true },
+      jsPDF: { unit: 'mm', format: [99, 78], orientation: 'landscape' }
     }
     html2pdf().from(element).set(opt).save()
   }
@@ -182,98 +182,33 @@ export function SimulationView({
       {data ? (
         <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center">
           
-          <div id="etiqueta-print-area" className="w-full max-w-[450px] bg-white text-black p-6 border-2 border-black font-sans">
-            
-            <div className="text-center mb-4 border-b-2 border-black pb-2">
-              <h1 className="text-xl font-black uppercase">Reporte Técnico Nutrietiq</h1>
-              <p className="text-sm font-bold uppercase">{recetaNombre}</p>
-            </div>
+          <div id="etiqueta-print-area" className="flex gap-[3mm] bg-white p-0">
+             <NutritionalLabel 
+               recetaNombre={recetaNombre}
+               data={data}
+               porciones={porciones}
+               porcionGramos={porcionGramos}
+               alergenos={alergenos}
+               companyData={companyData}
+             />
+             <NutritionalLabel 
+               recetaNombre={recetaNombre}
+               data={data}
+               porciones={porciones}
+               porcionGramos={porcionGramos}
+               alergenos={alergenos}
+               companyData={companyData}
+             />
+          </div>
 
-            {/* Sellos de Advertencia */}
-            <div className="flex justify-center flex-wrap gap-2 mb-6">
-              {data.sello_calorias && <SelloWarning label="CALORÍAS" />}
-              {data.sello_azucar && <SelloWarning label="AZÚCARES" />}
-              {data.sello_grasa && <SelloWarning label="GRASAS SATURADAS" />}
-              {data.sello_sodio && <SelloWarning label="SODIO" />}
-            </div>
-
-            <div className="border-b-4 border-black pb-1 mb-2">
-              <h2 className="text-2xl font-black uppercase text-center tracking-tighter">Información Nutricional</h2>
-            </div>
-            
-            <div className="flex justify-between text-sm font-medium mb-1">
-              <span>Porciones por envase:</span>
-              <span>{porciones}</span>
-            </div>
-            <div className="flex justify-between text-sm font-medium mb-3">
-              <span>Porción:</span>
-              <span>1 {porcionGramos}g</span>
-            </div>
-
-            <table className="w-full text-sm font-medium border-collapse">
-              <thead className="border-y-4 border-black">
-                <tr>
-                  <th className="py-1 text-left"></th>
-                  <th className="py-1 text-right">100g</th>
-                  <th className="py-1 text-right">1 Porción</th>
-                </tr>
-              </thead>
-              <tbody className="[&>tr]:border-b [&>tr]:border-black">
-                <tr>
-                  <td className="py-1">Energía (kcal)</td>
-                  <td className="py-1 text-right">{data.energia_100g}</td>
-                  <td className="py-1 text-right">{data.energia_porcion}</td>
-                </tr>
-                <tr>
-                  <td className="py-1">Proteínas (g)</td>
-                  <td className="py-1 text-right">{data.proteina_100g}</td>
-                  <td className="py-1 text-right">{data.proteina_porcion}</td>
-                </tr>
-                <tr>
-                  <td className="py-1 font-bold">Grasas Totales (g)</td>
-                  <td className="py-1 text-right font-bold">{data.grasa_total_100g}</td>
-                  <td className="py-1 text-right font-bold">{data.grasa_porcion}</td>
-                </tr>
-                <tr>
-                  <td className="py-1 font-bold">Hidratos de Carbono disp. (g)</td>
-                  <td className="py-1 text-right font-bold">{data.carbohidratos_100g}</td>
-                  <td className="py-1 text-right font-bold">{data.carbohidratos_porcion}</td>
-                </tr>
-                <tr>
-                  <td className="py-1 pl-4 text-xs">Azúcares Totales (g)</td>
-                  <td className="py-1 text-right text-xs">{data.azucares_100g}</td>
-                  <td className="py-1 text-right text-xs">{data.azucares_porcion}</td>
-                </tr>
-                <tr>
-                  <td className="py-1">Sodio (mg)</td>
-                  <td className="py-1 text-right">{data.sodio_100g}</td>
-                  <td className="py-1 text-right">{data.sodio_porcion}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div className="mt-4 text-xs font-bold uppercase leading-tight border-b-2 border-black pb-4 mb-4">
-              {alergenos.length > 0 ? (
-                <span>CONTIENE: {alergenos.join(', ')}.</span>
-              ) : (
-                <span>NO CONTIENE ALÉRGENOS DECLARADOS.</span>
-              )}
-            </div>
-
-            {/* Company Info on Label */}
-            {companyData && companyData.empresa !== 'Sin Empresa' && (
-              <div className="text-[10px] leading-tight space-y-0.5 border-t border-black pt-2 mb-4">
-                <p className="font-black uppercase">{companyData.empresa}</p>
-                <p>RUT: {companyData.rut}</p>
-                <p>{companyData.direccion}</p>
-                <p>Resolución Sanitaria N° {companyData.resolucion} de fecha {new Date(companyData.fecha_res).toLocaleDateString('es-CL')}</p>
-              </div>
-            )}
-
-            <div className="mt-4 pt-4 border-t border-dotted border-black text-center text-[8px] font-bold opacity-50 italic">
-              Reporte generado por NUTRIETIQ - Sistema de Gestión Alimentaria
-            </div>
-
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800 w-full max-w-md">
+             <p className="font-bold mb-1">Configuración de Impresión</p>
+             <ul className="list-disc pl-4 space-y-1">
+               <li>Formato: 2 etiquetas de 48x78mm.</li>
+               <li>Espacio entre etiquetas: 3mm.</li>
+               <li>Ancho total ajustable: 99mm.</li>
+               <li>Exportación PDF: Formato exacto 99x78mm (sin márgenes).</li>
+             </ul>
           </div>
         </div>
       ) : (
@@ -283,6 +218,106 @@ export function SimulationView({
           <p className="text-sm">Ejecuta el cálculo para visualizar los resultados aquí.</p>
         </div>
       )}
+    </div>
+  )
+}
+
+function NutritionalLabel({ 
+  recetaNombre, 
+  data, 
+  porciones, 
+  porcionGramos, 
+  alergenos, 
+  companyData 
+}: { 
+  recetaNombre: string, 
+  data: Calculo, 
+  porciones: number, 
+  porcionGramos: string, 
+  alergenos: string[], 
+  companyData: any 
+}) {
+  return (
+    <div className="w-[48mm] min-h-[78mm] max-h-[78mm] bg-white text-black p-2 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
+       <div className="text-center mb-1 pb-1 border-b border-black">
+         <p className="text-[10pt] font-black uppercase leading-[1.1]">{recetaNombre}</p>
+       </div>
+       
+       <div className="border-b-[3px] border-black pb-0.5 mb-1 text-center">
+         <h2 className="text-[11pt] font-black uppercase tracking-tighter leading-none">Información Nutricional</h2>
+       </div>
+
+       <div className="flex justify-between text-[8.5px] font-bold mb-0.5 px-0.5">
+         <span>Porciones por envase:</span>
+         <span>{porciones}</span>
+       </div>
+       <div className="flex justify-between text-[8.5px] font-bold mb-1 px-0.5">
+         <span>Porción:</span>
+         <span>1 {porcionGramos}g</span>
+       </div>
+
+       <table className="w-full text-[9px] font-bold border-collapse">
+         <thead className="border-y-[3px] border-black">
+           <tr>
+             <th className="py-0.5 text-left pl-0.5"></th>
+             <th className="py-0.5 text-right w-[14mm]">100g</th>
+             <th className="py-0.5 text-right pr-0.5 w-[14mm]">1 Porc.</th>
+           </tr>
+         </thead>
+         <tbody className="[&>tr]:border-b [&>tr]:border-black">
+           <tr>
+             <td className="py-0.5 pl-0.5">Energía (kcal)</td>
+             <td className="py-0.5 text-right">{data.energia_100g}</td>
+             <td className="py-0.5 text-right pr-0.5">{data.energia_porcion}</td>
+           </tr>
+           <tr>
+             <td className="py-0.5 pl-0.5">Proteínas (g)</td>
+             <td className="py-0.5 text-right">{data.proteina_100g}</td>
+             <td className="py-0.5 text-right pr-0.5">{data.proteina_porcion}</td>
+           </tr>
+           <tr>
+             <td className="py-0.5 pl-0.5">Grasas Totales (g)</td>
+             <td className="py-0.5 text-right">{data.grasa_total_100g}</td>
+             <td className="py-0.5 text-right pr-0.5">{data.grasa_porcion}</td>
+           </tr>
+           <tr>
+             <td className="py-0.5 pl-0.5">H. de Carbono (g)</td>
+             <td className="py-0.5 text-right">{data.carbohidratos_100g}</td>
+             <td className="py-0.5 text-right pr-0.5">{data.carbohidratos_porcion}</td>
+           </tr>
+           <tr>
+             <td className="py-0.5 pl-4 text-[7.5px]">Azúcares Tot. (g)</td>
+             <td className="py-0.5 text-right text-[7.5px]">{data.azucares_100g}</td>
+             <td className="py-0.5 text-right text-[7.5px] pr-0.5">{data.azucares_porcion}</td>
+           </tr>
+           <tr>
+             <td className="py-0.5 pl-0.5">Sodio (mg)</td>
+             <td className="py-0.5 text-right">{data.sodio_100g}</td>
+             <td className="py-0.5 text-right pr-0.5">{data.sodio_porcion}</td>
+           </tr>
+         </tbody>
+       </table>
+
+       <div className="mt-1.5 text-[8px] font-black uppercase leading-tight border-b-2 border-black pb-1 mb-1 px-0.5">
+         {alergenos.length > 0 ? (
+           <span>CONTIENE: {alergenos.join(', ')}.</span>
+         ) : (
+           <span>NO CONTIENE ALÉRGENOS.</span>
+         )}
+       </div>
+
+       {companyData && companyData.empresa !== 'Sin Empresa' && (
+         <div className="text-[7.5px] leading-[1.1] flex flex-col gap-0.5 px-0.5 font-bold">
+           <div className="flex justify-between flex-wrap items-end">
+             <span className="font-black uppercase text-[8px]">{companyData.empresa}</span>
+             <span>RUT: {companyData.rut}</span>
+           </div>
+           <div className="mt-0.5 border-t border-black/10 pt-0.5">
+             <p>{companyData.direccion}</p>
+             <p>Res. Sanitaria N° {companyData.resolucion} de fecha {new Date(companyData.fecha_res).toLocaleDateString('es-CL')}</p>
+           </div>
+         </div>
+       )}
     </div>
   )
 }

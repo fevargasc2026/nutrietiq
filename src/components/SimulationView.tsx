@@ -238,7 +238,7 @@ function NutritionalLabel({
   companyData: any 
 }) {
   return (
-    <div className="w-[48mm] min-h-[78mm] max-h-[78mm] bg-white text-black p-2 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
+    <div className="w-[48mm] min-h-[78mm] max-h-[78mm] bg-white text-black p-1.5 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
        <div className="text-center mb-1 pb-1 border-b border-black">
          <p className="text-[10pt] font-black uppercase leading-[1.1]">{recetaNombre}</p>
        </div>
@@ -298,7 +298,7 @@ function NutritionalLabel({
          </tbody>
        </table>
 
-       <div className="mt-1.5 text-[8px] font-black uppercase leading-tight border-b-2 border-black pb-1 mb-1 px-0.5">
+       <div className="mt-1 text-[8px] font-black uppercase leading-tight border-b-2 border-black pb-1 mb-1 px-0.5">
          {alergenos.length > 0 ? (
            <span>CONTIENE: {alergenos.join(', ')}.</span>
          ) : (
@@ -306,16 +306,26 @@ function NutritionalLabel({
          )}
        </div>
 
-       {companyData && companyData.empresa !== 'Sin Empresa' && (
-         <div className="text-[7.5px] leading-[1.1] flex flex-col gap-0.5 px-0.5 font-bold">
+       {companyData ? (
+         <div className="text-[7.5px] leading-[1.1] flex flex-col gap-0.5 px-0.5 font-bold mt-auto border-t border-black pt-1">
            <div className="flex justify-between flex-wrap items-end">
-             <span className="font-black uppercase text-[8px]">{companyData.empresa}</span>
-             <span>RUT: {companyData.rut}</span>
+             <span className="font-black uppercase text-[8px]">{companyData.empresa || 'Empresa No Configurada'}</span>
+             {companyData.rut && <span>RUT: {companyData.rut}</span>}
            </div>
-           <div className="mt-0.5 border-t border-black/10 pt-0.5">
-             <p>{companyData.direccion}</p>
-             <p>Res. Sanitaria N° {companyData.resolucion} de fecha {new Date(companyData.fecha_res).toLocaleDateString('es-CL')}</p>
-           </div>
+           {companyData.direccion && (
+             <div className="mt-0.5 border-t border-black/10 pt-0.5">
+               <p>{companyData.direccion}</p>
+               {companyData.resolucion && (
+                 <p>Res. Sanitaria N° {companyData.resolucion} 
+                   {companyData.fecha_res ? ` de fecha ${new Date(companyData.fecha_res).toLocaleDateString('es-CL')}` : ''}
+                 </p>
+               )}
+             </div>
+           )}
+         </div>
+       ) : (
+         <div className="text-[7px] text-red-600 font-bold mt-auto border-t border-black pt-1 text-center">
+            Empresa No Configurada
          </div>
        )}
     </div>

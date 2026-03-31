@@ -43,7 +43,7 @@ export function SimulationView({
   markupFactor?: number,
   costoTransporte?: number,
   ingredientesCosteo?: { nombre: string, peso: number, costo_unitario: number, unidad: string }[],
-  companyData?: { empresa: string, rut: string, direccion: string, resolucion: string, fecha_res: string } | null
+  companyData?: { empresa: string, rut: string, direccion: string, resolucion: string, resolucion_sanitaria: string, fecha_res: string } | null
 }) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<Calculo | null>(null)
@@ -266,6 +266,7 @@ export function SimulationView({
                 <p className="font-black uppercase">{companyData.empresa}</p>
                 <p>RUT: {companyData.rut}</p>
                 <p>{companyData.direccion}</p>
+                {companyData.resolucion_sanitaria && <p>{companyData.resolucion_sanitaria}</p>}
                 <p>{companyData.resolucion} de fecha {new Date(companyData.fecha_res).toLocaleDateString('es-CL')}</p>
               </div>
             )}

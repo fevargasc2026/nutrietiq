@@ -10,6 +10,7 @@ interface CompanyConfigFormProps {
     rut: string
     direccion: string
     resolucion: string
+    resolucion_sanitaria: string
     fecha_res: string
     buffer_pct: number
     markup_factor: number
@@ -129,6 +130,23 @@ export function CompanyConfigForm({ initialData }: CompanyConfigFormProps) {
                 type="text" 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
                 placeholder="Ej. Av. Principal 123, Ciudad" 
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Resolución Sanitaria
+            </label>
+            <div className="relative">
+              <FileCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <input 
+                name="resolucion_sanitaria"
+                defaultValue={initialData.resolucion_sanitaria}
+                disabled={!isSuperUsuario}
+                type="text" 
+                className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-75 disabled:bg-muted" 
+                placeholder="Ej. Resolución Seremi de Salud RM" 
               />
             </div>
           </div>

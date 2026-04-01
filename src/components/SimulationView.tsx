@@ -237,6 +237,9 @@ function NutritionalLabel({
   alergenos: string[], 
   companyData: any 
 }) {
+  const prodDate = new Date().toLocaleDateString('es-CL')
+  const expDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('es-CL')
+
   return (
     <div className="w-[48mm] min-h-[78mm] max-h-[78mm] bg-white text-black p-1.5 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
        <div className="text-center mb-1 pb-1 border-b border-black">
@@ -244,16 +247,16 @@ function NutritionalLabel({
        </div>
        
        <div className="border-b-[3px] border-black pb-0.5 mb-1 text-center">
-         <h2 className="text-[11pt] font-black uppercase tracking-tighter leading-none">Información Nutricional</h2>
+         <h2 className="text-[10pt] font-black uppercase tracking-tighter leading-none mb-0.5">Información Nutricional</h2>
+         <div className="text-[7.5px] font-bold flex justify-center gap-2">
+            <span>Fecha producción: {prodDate}</span>
+            <span>CONSUMIR HASTA: {expDate}</span>
+         </div>
        </div>
 
-       <div className="flex justify-between text-[8.5px] font-bold mb-0.5 px-0.5">
-         <span>Porciones por envase:</span>
-         <span>{porciones}</span>
-       </div>
-       <div className="flex justify-between text-[8.5px] font-bold mb-1 px-0.5">
-         <span>Porción:</span>
-         <span>1 {porcionGramos}g</span>
+       <div className="flex justify-between text-[8px] font-bold mb-1 px-0.5">
+         <span>Porciones por envase: {porciones}</span>
+         <span>Porción: 1 {porcionGramos}g</span>
        </div>
 
        <table className="w-full text-[9px] font-bold border-collapse">
@@ -298,7 +301,7 @@ function NutritionalLabel({
          </tbody>
        </table>
 
-       <div className="mt-1 text-[8px] font-black uppercase leading-tight border-b-2 border-black pb-1 mb-1 px-0.5">
+       <div className="mt-1 text-[7.5px] font-black uppercase leading-tight border-b border-black pb-1 mb-1 px-0.5">
          {alergenos.length > 0 ? (
            <span>CONTIENE: {alergenos.join(', ')}.</span>
          ) : (
@@ -307,24 +310,24 @@ function NutritionalLabel({
        </div>
 
        {companyData ? (
-         <div className="text-[7.5px] leading-[1.1] flex flex-col gap-0.5 px-0.5 font-bold mt-auto border-t border-black pt-1">
+         <div className="text-[7px] leading-[1.0] flex flex-col gap-0.5 px-0.5 font-bold">
            <div className="flex justify-between flex-wrap items-end">
-             <span className="font-black uppercase text-[8px]">{companyData.empresa || 'Empresa No Configurada'}</span>
+             <span className="font-black uppercase text-[7.5px]">{companyData.empresa || 'Empresa No Configurada'}</span>
              {companyData.rut && <span>RUT: {companyData.rut}</span>}
            </div>
            {companyData.direccion && (
-             <div className="mt-0.5 border-t border-black/10 pt-0.5">
+             <div className="mt-0.5 border-t border-black/5 pt-0.5">
                <p>{companyData.direccion}</p>
                {companyData.resolucion && (
                  <p>Res. Sanitaria N° {companyData.resolucion} 
-                   {companyData.fecha_res ? ` de fecha ${new Date(companyData.fecha_res).toLocaleDateString('es-CL')}` : ''}
+                   {companyData.fecha_res ? ` de fecha ${new Date(companyData.fecha_res + 'T12:00:00').toLocaleDateString('es-CL')}` : ''}
                  </p>
                )}
              </div>
            )}
          </div>
        ) : (
-         <div className="text-[7px] text-red-600 font-bold mt-auto border-t border-black pt-1 text-center">
+         <div className="text-[7px] text-red-600 font-bold mt-1 border-t border-black pt-1 text-center">
             Empresa No Configurada
          </div>
        )}

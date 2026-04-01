@@ -265,19 +265,19 @@ function NutritionalLabel({
        <table className="w-full text-[9px] font-bold border-collapse">
          <thead className="border-y-[3px] border-black">
            <tr>
-             <th className="py-0.5 text-left pl-0.5"></th>
-             <th className="py-0.5 text-right w-[14mm]">100g</th>
-             <th className="py-0.5 text-right pr-0.5 w-[14mm]">1 Porc.</th>
+             <th className="py-0.5 text-left pl-0.5 whitespace-nowrap"></th>
+             <th className="py-0.5 text-right w-[12mm]">100g</th>
+             <th className="py-0.5 text-right pr-0.5 w-[12mm]">1 Porc.</th>
            </tr>
          </thead>
          <tbody className="[&>tr]:border-b [&>tr]:border-black">
            <tr>
-             <td className="py-0.5 pl-0.5">Energía (kcal)</td>
+             <td className="py-0.5 pl-0.5 whitespace-nowrap">Energía (kcal)</td>
              <td className="py-0.5 text-right">{data.energia_100g}</td>
              <td className="py-0.5 text-right pr-0.5">{data.energia_porcion}</td>
            </tr>
            <tr>
-             <td className="py-0.5 pl-0.5">Proteínas (g)</td>
+             <td className="py-0.5 pl-0.5 whitespace-nowrap">Proteínas (g)</td>
              <td className="py-0.5 text-right">{data.proteina_100g}</td>
              <td className="py-0.5 text-right pr-0.5">{data.proteina_porcion}</td>
            </tr>
@@ -287,7 +287,7 @@ function NutritionalLabel({
              <td className="py-0.5 text-right pr-0.5">{data.grasa_porcion}</td>
            </tr>
            <tr>
-             <td className="py-0.5 pl-0.5">H. de Carbono (g)</td>
+             <td className="py-0.5 pl-0.5 whitespace-nowrap">H. de Carbono (g)</td>
              <td className="py-0.5 text-right">{data.carbohidratos_100g}</td>
              <td className="py-0.5 text-right pr-0.5">{data.carbohidratos_porcion}</td>
            </tr>
@@ -297,7 +297,7 @@ function NutritionalLabel({
              <td className="py-0.5 text-right text-[7.5px] pr-0.5">{data.azucares_porcion}</td>
            </tr>
            <tr>
-             <td className="py-0.5 pl-0.5">Sodio (mg)</td>
+             <td className="py-0.5 pl-0.5 whitespace-nowrap">Sodio (mg)</td>
              <td className="py-0.5 text-right">{data.sodio_100g}</td>
              <td className="py-0.5 text-right pr-0.5">{data.sodio_porcion}</td>
            </tr>

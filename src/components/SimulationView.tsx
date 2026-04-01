@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { Calculator, Download, AlertTriangle } from 'lucide-react'
+import { Calculator, Download, AlertTriangle, FileSpreadsheet } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import html2pdf from 'html2pdf.js'
 
@@ -91,6 +91,63 @@ export function SimulationView({
     }
     html2pdf().from(element).set(opt).save()
   }
+  
+  const handleExportCSV = () => {
+    if (!data) return
+    
+    // Header names for BarTender mapping
+    const headers = [
+      'Receta', 'Porciones', 'Peso_Porcion_g', 
+      'Energia_100g', 'Energia_Porcion', 
+      'Proteinas_100g', 'Proteinas_Porcion',
+      'Grasa_Total_100g', 'Grasa_Total_Porcion',
+      'Carbohidratos_100g', 'Carbohidratos_Porcion',
+      'Azucares_Total_100g', 'Azucares_Total_Porcion',
+      'Sodio_100g', 'Sodio_Porcion',
+      'Alergenos', 'Empresa', 'RUT', 'Direccion', 'Resolucion', 'Fecha_Resolucion'
+    ]
+    
+    // Prepare values (using string escaping for safety)
+    const values = [
+      recetaNombre,
+      porciones,
+      porcionGramos,
+      data.energia_100g,
+      data.energia_porcion,
+      data.proteina_100g,
+      data.proteina_porcion,
+      data.grasa_total_100g,
+      data.grasa_porcion,
+      data.carbohidratos_100g,
+      data.carbohidratos_porcion,
+      data.azucares_100g,
+      data.azucares_porcion,
+      data.sodio_100g,
+      data.sodio_porcion,
+      alergenos.join(', '),
+      companyData?.empresa || '',
+      companyData?.rut || '',
+      companyData?.direccion || '',
+      companyData?.resolucion || '',
+      companyData?.fecha_res || ''
+    ]
+
+    // Create CSV content (using ; for Excel regional compatibility)
+    const csvContent = headers.join(';') + '\n' + values.map(v => `"${v}"`).join(';')
+    
+    // Create Blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const fileName = `Etiqueta.csv`
+    
+    link.setAttribute('href', url)
+    link.setAttribute('download', fileName)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   const porcionGramos = (pesoFinal / porciones).toFixed(0)
 
@@ -168,12 +225,21 @@ export function SimulationView({
         {data && (
           <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
             <h3 className="text-lg font-medium tracking-tight border-b pb-2">Acciones</h3>
-            <button 
-              onClick={handleExportPDF}
-              className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-            >
-              <Download className="mr-2 h-4 w-4" /> Exportar Reporte PDF
-            </button>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleExportPDF}
+                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+              >
+                <Download className="mr-2 h-4 w-4" /> Exportar Reporte PDF
+              </button>
+              
+              <button 
+                onClick={handleExportCSV}
+                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-blue-50 text-blue-700 hover:bg-blue-100 h-10 px-4 py-2"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Etiqueta (CSV)
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -84,10 +84,10 @@ export function SimulationView({
     if (!element) return
     const opt = {
       margin: 0,
-      filename: `Etiquetas_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
+      filename: `Etiqueta_${recetaNombre.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 1 },
       html2canvas: { scale: 4, useCORS: true },
-      jsPDF: { unit: 'mm', format: [99, 78], orientation: 'landscape' }
+      jsPDF: { unit: 'mm', format: [50, 80], orientation: 'portrait' }
     }
     html2pdf().from(element).set(opt).save()
   }
@@ -181,8 +181,7 @@ export function SimulationView({
       {/* Render Area */}
       {data ? (
         <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center">
-          
-          <div id="etiqueta-print-area" className="flex gap-[3mm] bg-white p-0">
+          <div id="etiqueta-print-area" className="bg-white p-0">
              <NutritionalLabel 
                recetaNombre={recetaNombre}
                data={data}
@@ -191,24 +190,6 @@ export function SimulationView({
                alergenos={alergenos}
                companyData={companyData}
              />
-             <NutritionalLabel 
-               recetaNombre={recetaNombre}
-               data={data}
-               porciones={porciones}
-               porcionGramos={porcionGramos}
-               alergenos={alergenos}
-               companyData={companyData}
-             />
-          </div>
-
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800 w-full max-w-md">
-             <p className="font-bold mb-1">Configuración de Impresión</p>
-             <ul className="list-disc pl-4 space-y-1">
-               <li>Formato: 2 etiquetas de 48x78mm.</li>
-               <li>Espacio entre etiquetas: 3mm.</li>
-               <li>Ancho total ajustable: 99mm.</li>
-               <li>Exportación PDF: Formato exacto 99x78mm (sin márgenes).</li>
-             </ul>
           </div>
         </div>
       ) : (
@@ -241,7 +222,7 @@ function NutritionalLabel({
   const expDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('es-CL')
 
   return (
-    <div className="w-[48mm] min-h-[78mm] max-h-[78mm] bg-white text-black p-1.5 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
+    <div className="w-[50mm] h-[80mm] min-h-[80mm] max-h-[80mm] bg-white text-black p-1 pb-2 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">
        <div className="text-center mb-1 pb-1 border-b border-black">
          <p className="text-[10pt] font-black uppercase leading-[1.1]">{recetaNombre}</p>
        </div>

@@ -139,7 +139,7 @@ export function SimulationView({
     XLSX.utils.book_append_sheet(wb, ws, "Etiqueta");
     
     // Export to Excel
-    XLSX.writeFile(wb, `Etiqueta_${recetaNombre.replace(/\s+/g, '_')}.xlsx`);
+    XLSX.writeFile(wb, `Etiqueta.xlsx`);
   }
 
   const porcionGramos = (pesoFinal / porciones).toFixed(0)

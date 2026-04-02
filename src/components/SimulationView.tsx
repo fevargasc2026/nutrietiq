@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Calculator, Download, AlertTriangle, FileSpreadsheet } from 'lucide-react'
+import * as XLSX from 'xlsx'
 import { createClient } from '@/utils/supabase/client'
 import html2pdf from 'html2pdf.js'
 
@@ -92,7 +93,7 @@ export function SimulationView({
     html2pdf().from(element).set(opt).save()
   }
   
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (!data) return
     
     // Header names for BarTender mapping
@@ -107,7 +108,7 @@ export function SimulationView({
       'Alergenos', 'Empresa', 'RUT', 'Direccion', 'Resolucion', 'Fecha_Resolucion'
     ]
     
-    // Prepare values (using string escaping for safety)
+    // Prepare values
     const values = [
       recetaNombre,
       porciones,
@@ -132,21 +133,13 @@ export function SimulationView({
       companyData?.fecha_res || ''
     ]
 
-    // Create CSV content (using ; for Excel regional compatibility)
-    const csvContent = headers.join(';') + '\n' + values.map(v => `"${v}"`).join(';')
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet([headers, values]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Etiqueta");
     
-    // Create Blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    const fileName = `Etiqueta.csv`
-    
-    link.setAttribute('href', url)
-    link.setAttribute('download', fileName)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Export to Excel
+    XLSX.writeFile(wb, `Etiqueta_${recetaNombre.replace(/\s+/g, '_')}.xlsx`);
   }
 
   const porcionGramos = (pesoFinal / porciones).toFixed(0)
@@ -234,10 +227,10 @@ export function SimulationView({
               </button>
               
               <button 
-                onClick={handleExportCSV}
-                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-blue-50 text-blue-700 hover:bg-blue-100 h-10 px-4 py-2"
+                onClick={handleExportExcel}
+                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 border border-input bg-green-50 text-green-700 hover:bg-green-100 h-10 px-4 py-2"
               >
-                <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Etiqueta (CSV)
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Etiqueta (Excel)
               </button>
             </div>
           </div>

@@ -239,16 +239,18 @@ export function SimulationView({
 
       {/* Render Area */}
       {data ? (
-        <div className="lg:col-span-2 rounded-xl border bg-card p-8 shadow-sm flex flex-col items-center">
-          <div id="etiqueta-print-area" className="bg-white p-0">
-             <NutritionalLabel 
-               recetaNombre={recetaNombre}
-               data={data}
-               porciones={porciones}
-               porcionGramos={porcionGramos}
-               alergenos={alergenos}
-               companyData={companyData}
-             />
+        <div className="lg:col-span-2 rounded-xl border bg-slate-50/50 p-4 shadow-sm flex flex-col items-center justify-center min-h-[600px] overflow-hidden">
+          <div id="etiqueta-print-area" className="bg-white p-0 shadow-2xl relative">
+            <div className="scale-[1.8] transform origin-center">
+               <NutritionalLabel 
+                 recetaNombre={recetaNombre}
+                 data={data}
+                 porciones={porciones}
+                 porcionGramos={porcionGramos}
+                 alergenos={alergenos}
+                 companyData={companyData}
+               />
+            </div>
           </div>
         </div>
       ) : (

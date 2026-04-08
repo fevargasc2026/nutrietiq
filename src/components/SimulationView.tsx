@@ -50,6 +50,15 @@ export function SimulationView({
   const [data, setData] = useState<Calculo | null>(null)
   const [alergenos, setAlergenos] = useState<string[]>([])
   const [errorStr, setErrorStr] = useState("")
+  
+  // New date states for the label
+  const [fechaProduccion, setFechaProduccion] = useState(new Date().toISOString().split('T')[0])
+  const [fechaVencimiento, setFechaVencimiento] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 10)
+    return d.toISOString().split('T')[0]
+  })
+
   const supabase = createClient()
 
   const handleSimulate = async () => {
@@ -105,7 +114,8 @@ export function SimulationView({
       'Carbohidratos_100g', 'Carbohidratos_Porcion',
       'Azucares_Total_100g', 'Azucares_Total_Porcion',
       'Sodio_100g', 'Sodio_Porcion',
-      'Alergenos', 'Empresa', 'RUT', 'Direccion', 'Resolucion', 'Fecha_Resolucion'
+      'Alergenos', 'Fecha_Produccion', 'Fecha_Vencimiento',
+      'Empresa', 'RUT', 'Direccion', 'Resolucion', 'Fecha_Resolucion'
     ]
     
     // Prepare values
@@ -126,6 +136,8 @@ export function SimulationView({
       data.sodio_100g,
       data.sodio_porcion,
       alergenos.join(', '),
+      fechaProduccion.split('-').reverse().join('-'), // DD-MM-YYYY
+      fechaVencimiento.split('-').reverse().join('-'), // DD-MM-YYYY
       companyData?.empresa || '',
       companyData?.rut || '',
       companyData?.direccion || '',
@@ -172,6 +184,27 @@ export function SimulationView({
           <div>
             <h3 className="text-lg font-medium tracking-tight">Calculadora</h3>
             <p className="text-sm text-muted-foreground mt-1">Calcula los aportes y genera la etiqueta en base a la Ley de Etiquetado.</p>
+          </div>
+
+          <div className="w-full space-y-3 text-left">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase">Fecha Producción</label>
+              <input 
+                type="date" 
+                value={fechaProduccion}
+                onChange={(e) => setFechaProduccion(e.target.value)}
+                className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase">Fecha Vencimiento</label>
+              <input 
+                type="date" 
+                value={fechaVencimiento}
+                onChange={(e) => setFechaVencimiento(e.target.value)}
+                className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
           </div>
           <button 
             onClick={handleSimulate}
@@ -249,6 +282,8 @@ export function SimulationView({
                  porcionGramos={porcionGramos}
                  alergenos={alergenos}
                  companyData={companyData}
+                 fechaProduccion={fechaProduccion}
+                 fechaVencimiento={fechaVencimiento}
                />
             </div>
           </div>
@@ -270,17 +305,21 @@ function NutritionalLabel({
   porciones, 
   porcionGramos, 
   alergenos, 
-  companyData 
+  companyData,
+  fechaProduccion,
+  fechaVencimiento
 }: { 
   recetaNombre: string, 
   data: Calculo, 
   porciones: number, 
   porcionGramos: string, 
   alergenos: string[], 
-  companyData: any 
+  companyData: any,
+  fechaProduccion: string,
+  fechaVencimiento: string
 }) {
-  const prodDate = new Date().toLocaleDateString('es-CL')
-  const expDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('es-CL')
+  const prodDate = fechaProduccion.split('-').reverse().join('-')
+  const expDate = fechaVencimiento.split('-').reverse().join('-')
 
   return (
     <div className="w-[50mm] h-[80mm] min-h-[80mm] max-h-[80mm] bg-white text-black p-1 pb-2 border-2 border-black font-sans flex flex-col overflow-hidden shrink-0">

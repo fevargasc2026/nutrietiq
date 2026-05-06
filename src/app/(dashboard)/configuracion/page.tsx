@@ -1,4 +1,3 @@
-import { Settings } from 'lucide-react'
 import { getEmpresaConfig } from '@/app/actions/configuracion'
 import { CompanyConfigForm } from '@/components/forms/CompanyConfigForm'
 import { redirect } from 'next/navigation'

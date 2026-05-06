@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Edit2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteIngredientButton } from '@/components/DeleteIngredientButton'
 import { RefreshButton } from '@/components/RefreshButton'

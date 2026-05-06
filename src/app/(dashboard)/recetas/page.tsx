@@ -30,7 +30,7 @@ export default async function RecetasPage() {
       porciones,
       peso_final,
       fecha_creacion,
-      usuarios (nombre)
+      usuarios:usuario_creador (nombre)
     `)
     .order('fecha_creacion', { ascending: false })
 

@@ -1,7 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js'
 import dotenv from 'dotenv'
-import path from 'path'
 
 // Cargar variables de entorno desde .env.local
 dotenv.config({ path: '.env.local' })

@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseServerClient } from '@/utils/supabase/server'
-import { createClient } from '@supabase/supabase-js'
+
+interface SupabaseAuthClient {
+  auth: {
+    getUser: () => Promise<{ data: { user: { id: string; email?: string } | null } | null; error: Error | null }>
+  }
+}
+
+interface VerifyAuthResult {
+  authenticated: boolean
+  user: { id: string; email?: string } | null
+}
+
+async function verifyAuth(supabase: SupabaseAuthClient): Promise<VerifyAuthResult> {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) {
+    return { authenticated: false, user: null }
+  }
+  return { authenticated: true, user }
+}
 
 // Diccionario de traducción español -> inglés técnico USDA
 const translationMap: Record<string, string> = {
@@ -115,8 +133,26 @@ async function callDeepSeekAI(description: string): Promise<string[] | null> {
   }
 }
 
-// Generación COMPLETA de alimento por IA (Modo generativo / Fallback 404)
-async function generateAIFoodSuggestion(ingredientName: string): Promise<{ data: any | null, reason?: string }> {
+interface AIFoodData {
+  description: string
+  description_es: string
+  energia_kcal: number
+  proteina_g: number
+  grasa_total_g: number
+  grasa_saturada_g: number
+  carbohidratos_g: number
+  fibra_g: number
+  azucares_g: number
+  sodio_mg: number
+  alergenos: string[]
+}
+
+interface GenerateAIFoodResult {
+  data: AIFoodData | null
+  reason?: string
+}
+
+async function generateAIFoodSuggestion(ingredientName: string): Promise<GenerateAIFoodResult> {
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
     console.error('DEEPSEEK_API_KEY is missing')
@@ -251,7 +287,13 @@ function translateToSpanish(englishName: string): string {
 export async function GET() {
   try {
     const supabase = await createSupabaseServerClient()
-    
+
+    // Verificar autenticación
+    const auth = await verifyAuth(supabase)
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+
     // 1. Obtener de la base de referencia (USDA)
     const { data: usdaData, error: usdaError } = await supabase
       .from('usda_alimentos')
@@ -307,14 +349,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    let supabase = await createSupabaseServerClient()
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
-                               process.env.SERVICE_ROLE_KEY || 
-                               process.env.SUPABASE_SERVICE_KEY
+    const supabase = await createSupabaseServerClient()
 
-    if (supabaseUrl && supabaseServiceKey) {
-      supabase = createClient(supabaseUrl, supabaseServiceKey)
+    // Verificar autenticación
+    const auth = await verifyAuth(supabase)
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -330,7 +370,23 @@ export async function POST(request: Request) {
     const englishSearch = translateToEnglish(ingredientName)
 
     // BÚSQUEDA EN BASE DE DATOS LOCAL
-    let foods: any[] | null = null
+    interface USDAAlimento {
+      id?: string
+      description: string
+      description_es?: string
+      energia_kcal?: number
+      proteina_g?: number
+      grasa_total_g?: number
+      grasa_saturada_g?: number
+      carbohidratos_g?: number
+      fibra_g?: number
+      azucares_g?: number
+      sodio_mg?: number
+      alergenos?: string[]
+      data_type?: string
+    }
+    
+    let foods: USDAAlimento[] | null = null
     const { data: foodsInitial } = await supabase
       .from('usda_alimentos')
       .select('*')
@@ -368,16 +424,17 @@ export async function POST(request: Request) {
       foods = foodsFlexible
     }
 
-    let food: any = null
+    let food: USDAAlimento | null = null
     let esGeneradoIA = false
-    let esNuevoRegistro = false
     let reasonAI = ''
 
     // FALLBACK A IA SI NO SE ENCONTRÓ EN LA DB
+    // Solo usuarios autenticados pueden usar IA (sin escritura a BD)
     if (!foods || foods.length === 0) {
       const { data: aiGeneratedFood, reason } = await generateAIFoodSuggestion(ingredientName)
       if (aiGeneratedFood) {
         // Limpiar objeto para asegurar que solo enviamos campos existentes en la DB
+        // NO se guarda en BD - solo se usa en memoria para esta sesión
         const cleanFood = {
           description: aiGeneratedFood.description || englishSearch,
           description_es: aiGeneratedFood.description_es || ingredientName,
@@ -390,33 +447,12 @@ export async function POST(request: Request) {
           azucares_g: Number(aiGeneratedFood.azucares_g) || 0,
           sodio_mg: Number(aiGeneratedFood.sodio_mg) || 0,
           alergenos: Array.isArray(aiGeneratedFood.alergenos) ? aiGeneratedFood.alergenos : [],
-          data_type: 'AI_GENERATED',
-          fdc_id: Math.floor(Date.now() / 1000) // Usar timestamp para evitar colisiones
+          data_type: 'AI_GENERATED'
         }
 
         food = cleanFood
         esGeneradoIA = true
-        
-        // CACHING: Insertar el nuevo alimento generado en la DB para el futuro
-        try {
-          const { data: insertedFood, error: insertError } = await supabase
-            .from('usda_alimentos')
-            .insert(cleanFood)
-            .select()
-            .single()
-          
-          if (insertError) {
-            console.error('Error saving AI generated food to DB:', insertError)
-            reasonAI = `DB_SAVE_ERROR: ${insertError.message}`
-          } else if (insertedFood) {
-            food = insertedFood
-            esNuevoRegistro = true
-            console.log('AI food cached successfully:', food.id)
-          }
-        } catch (e) {
-          console.error('Exception during AI food caching:', e)
-          reasonAI = 'DB_EXCEPTION'
-        }
+        // Caching en memoria eliminado por seguridad - solo se usa la respuesta de IA directamente
       } else {
         reasonAI = reason || ''
       }
@@ -429,8 +465,7 @@ export async function POST(request: Request) {
       if (reasonAI === 'AI_KEY_MISSING') errorMessage += ' (La clave de IA DeepSeek no está configurada)'
       else if (reasonAI === 'AI_API_ERROR_402') errorMessage += ' (Actualizar créditos de uso en DeepSeek)'
       else if (reasonAI.startsWith('AI_API_ERROR')) errorMessage += ` (Error servicio IA: ${reasonAI.split('_').pop()})`
-      else if (reasonAI.startsWith('DB_SAVE_ERROR')) errorMessage += ` (Error al guardar en DB)`
-      
+
       return NextResponse.json({ error: errorMessage }, { status: 404 })
     }
 
@@ -462,15 +497,13 @@ export async function POST(request: Request) {
       origenAlergenos = `IA-Deepseek ${shortId}`
     }
 
-    // Si no hay alérgenos definidos, intentamos evaluarlos
+    // Si no hay alérgenos definidos, intentamos evaluarlos (solo análisis, sin escritura a BD)
     if (alergenos.length === 0) {
       const aiAlergenos = await callDeepSeekAI(food.description || englishSearch)
       if (aiAlergenos && aiAlergenos.length > 0) {
         alergenos = aiAlergenos
-        origenAlergenos = food.data_type === 'AI_GENERATED' ? `IA-Deepseek (Aprendido) ${shortId}` : `IA-Deepseek ${shortId}`
-        try {
-          await supabase.from('usda_alimentos').update({ alergenos: aiAlergenos }).eq('id', food.id)
-        } catch (e) {}
+        origenAlergenos = food.data_type === 'AI_GENERATED' ? `IA-Deepseek ${shortId}` : `IA-Deepseek ${shortId}`
+        // Eliminado: UPDATE a BD - solo análisis en memoria
       } else {
         alergenos = inferAllergens(food.description || englishSearch)
         origenAlergenos = `Análisis automático Nutrietiq ${shortId}`
@@ -478,7 +511,7 @@ export async function POST(request: Request) {
     } else {
       // Ajuste final de etiqueta si ya tiene alérgenos pero es de la base oficial
       if (food.data_type !== 'AI_GENERATED' && !esGeneradoIA) {
-         origenAlergenos = `Base de datos USDA (Aprendido) ${shortId}`
+         origenAlergenos = `Base de datos USDA ${shortId}`
       }
     }
 
@@ -491,8 +524,7 @@ export async function POST(request: Request) {
         alergenos_sugeridos: alergenos.length > 0 ? alergenos.join(', ') : '',
         origen_alergenos: origenAlergenos,
         db_id: food.id,
-        es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED',
-        mensaje_sistema: esNuevoRegistro ? 'Ingrediente/alimento incorporado a la data' : null
+        es_generado_ia: esGeneradoIA || food.data_type === 'AI_GENERATED'
       },
       composicion_nutricional: {
         energia_kcal: energia,

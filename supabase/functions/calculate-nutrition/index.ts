@@ -144,8 +144,9 @@ Deno.serve(async (req) => {
       status: 200,
     })
 
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { 'Content-Type': 'application/json' },
       status: 400,
     })

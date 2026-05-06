@@ -69,7 +69,11 @@ export function RecipeList({ initialRecipes }: RecipeListProps) {
                     <td className="p-4 align-middle">{receta.categoria || '-'}</td>
                     <td className="p-4 align-middle">{receta.peso_final}</td>
                     <td className="p-4 align-middle">{receta.porciones}</td>
-                    <td className="p-4 align-middle">{receta.usuarios?.nombre || 'Desconocido'}</td>
+                    <td className="p-4 align-middle">
+                      {Array.isArray(receta.usuarios) 
+                        ? (receta.usuarios[0]?.nombre || 'Desconocido')
+                        : (receta.usuarios?.nombre || 'Desconocido')}
+                    </td>
                     <td className="p-4 align-middle">{new Date(receta.fecha_creacion).toLocaleDateString('es-CL')}</td>
                     <td className="p-4 align-middle">
                        <div className="flex items-center justify-center gap-2">

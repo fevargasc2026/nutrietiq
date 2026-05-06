@@ -12,8 +12,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - /api/usda-search (USDA API pública)
-     * Feel free to modify this pattern to include more paths.
+     * Las APIs (/api/*) se manejan con autenticación propia en cada endpoint
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

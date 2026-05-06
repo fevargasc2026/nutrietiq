@@ -1,8 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Plus } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { getEmpresaConfig } from '@/app/actions/configuracion'
 
 export const dynamic = 'force-dynamic'

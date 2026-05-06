@@ -21,7 +21,7 @@ export default async function UsuariosPage() {
   }
 
   // Fetch all users
-  const { data: users, error } = await supabase
+  const { data: users } = await supabase
     .from('usuarios')
     .select('*')
     .order('fecha_creacion', { ascending: false });
@@ -46,14 +46,10 @@ export default async function UsuariosPage() {
     const userId = formData.get('userId') as string;
     const newRole = formData.get('role') as string;
 
-    const { error } = await supabase
+    await supabase
       .from('usuarios')
       .update({ rol: newRole })
       .eq('id', userId);
-
-    if (error) {
-      console.error('Error updating role:', error);
-    }
     revalidatePath('/usuarios');
   };
 
@@ -76,14 +72,10 @@ export default async function UsuariosPage() {
 
     const userId = formData.get('userId') as string;
 
-    const { error } = await supabase
+    await supabase
       .from('usuarios')
       .delete()
       .eq('id', userId);
-
-    if (error) {
-       console.error('Error deleting user profile:', error);
-    }
     revalidatePath('/usuarios');
   };
 

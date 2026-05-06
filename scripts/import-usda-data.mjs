@@ -25,6 +25,7 @@ if (!supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // IDs de nutrientes USDA que nos interesan
+// eslint-disable-next-line unused-imports/no-unused-vars
 const NUTRIENT_IDS = {
   energia: [1008, 208],       // Energy, kcal
   proteina: 1003,             // Protein

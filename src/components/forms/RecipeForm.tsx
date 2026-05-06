@@ -134,10 +134,10 @@ export function RecipeForm({
         costo_indirecto_pct: parseFloat(costoIndirectoPct) || 0,
         markup_factor: parseFloat(markupFactorState) || 1,
         costo_transporte: parseFloat(costoTransporteState) || 0,
-        usuario_creador: userData.user.id
       }
 
-      console.log("Saving recipe with payload:", recipePayload)
+      console.log("Saving recipe. Payload:", recipePayload)
+      console.log("User ID:", userData.user.id)
 
       let recipeId = initialData?.id
 
@@ -167,7 +167,10 @@ export function RecipeForm({
         // Mode: Create
         const { data: recetaData, error: recetaError } = await supabase
           .from('recetas')
-          .insert(recipePayload)
+          .insert({
+            ...recipePayload,
+            usuario_creador: userData.user.id
+          })
           .select('id')
           .single()
 

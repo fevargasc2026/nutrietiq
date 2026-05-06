@@ -13,7 +13,8 @@ interface VerifyAuthResult {
 }
 
 async function verifyAuth(supabase: SupabaseAuthClient): Promise<VerifyAuthResult> {
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getUser()
+  const user = data?.user
   if (error || !user) {
     return { authenticated: false, user: null }
   }
